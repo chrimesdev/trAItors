@@ -6,7 +6,7 @@
  * resolving re-derives exactly the same speeches.
  */
 import { foundToday, incriminatedBy } from './evidence';
-import { contradictions, markContradicted } from './rumours';
+import { contradictions, markContradicted, withdrawRumour } from './rumours';
 import { sightingsOf } from './sightings';
 import {
   addSuspicion,
@@ -20,7 +20,15 @@ import {
   rollPick,
   topSuspect,
 } from './state';
-import { PLAYER_ID, type GameState, type Id, type Npc, type PlayerStatement, type Speech } from './types';
+import {
+  PLAYER_ID,
+  type GameState,
+  type Id,
+  type LieAnswer,
+  type Npc,
+  type PlayerStatement,
+  type Speech,
+} from './types';
 
 export function roundTableSpeeches(s: GameState): Speech[] {
   const speeches: Speech[] = [];
@@ -64,7 +72,9 @@ export function roundTableSpeeches(s: GameState): Speech[] {
     }
     const exclude = n.archetype === 'loyalist' && n.allyOf ? [n.allyOf] : [];
     const top = topSuspect(s, n, exclude);
-    if (top && (n.suspicion[top] ?? 0) >= t.accuseThreshold) {
+    // A gentler first day: it takes more to point at the player out loud (open-questions #8).
+    const bonus = top === PLAYER_ID && s.day === 1 ? s.balance.firstDay.playerAccuseThresholdBonus : 0;
+    if (top && (n.suspicion[top] ?? 0) >= t.accuseThreshold + bonus) {
       speeches.push({ speaker: n.id, kind: 'accuse', target: top });
     }
   }
@@ -75,7 +85,8 @@ function listeners(s: GameState, speaker: Id): Npc[] {
   return aliveNpcs(s).filter((n) => n.id !== speaker);
 }
 
-function applySpeech(s: GameState, sp: Speech, defences: Record<Id, number>): void {
+function applySpeech(s: GameState, sp: Speech, defences: Record<Id, number>, answer: LieAnswer): Speech[] {
+  const reactions: Speech[] = [];
   const b = s.balance;
   const announce = b.evidence.announceFactor;
   const who = nameOf(s, sp.speaker);
@@ -118,12 +129,27 @@ function applySpeech(s: GameState, sp: Speech, defences: Record<Id, number>): vo
     case 'contradiction': {
       const rumour = s.rumours.find((r) => r.id === sp.rumourId);
       const d = getNpc(s, sp.speaker);
-      addSuspicion(s, d, PLAYER_ID, b.lies.contradictionPenalty);
+      // "I must have been mistaken" halves the damage and withdraws the story; standing by it keeps the rumour alive.
+      const retract = answer === 'retract';
+      const penalty = b.lies.contradictionPenalty * (retract ? b.lies.retractFactor : 1);
+      addSuspicion(s, d, PLAYER_ID, penalty);
       for (const l of listeners(s, sp.speaker)) {
-        addSuspicion(s, l, PLAYER_ID, b.lies.contradictionPenalty * announce * influence(l, sp.speaker));
+        addSuspicion(s, l, PLAYER_ID, penalty * announce * influence(l, sp.speaker));
       }
       if (rumour) markContradicted(s, rumour, sp.speaker);
       log(s, `${who} catches your lie about ${rumour ? nameOf(s, rumour.target) : 'someone'}.`);
+      if (retract) {
+        addTrust(d, PLAYER_ID, b.lies.retractTrustLoss);
+        if (rumour) withdrawRumour(s, rumour);
+        log(s, 'You say you must have been mistaken. The story dies, and so does a little of their trust.');
+      } else {
+        log(s, 'You stand by what you said.');
+      }
+      reactions.push({
+        speaker: sp.speaker,
+        kind: retract ? 'lieRetracted' : 'lieStoodBy',
+        target: PLAYER_ID,
+      });
       break;
     }
     case 'bribeExposed': {
@@ -159,6 +185,7 @@ function applySpeech(s: GameState, sp: Speech, defences: Record<Id, number>): vo
       break;
     }
   }
+  return reactions;
 }
 
 function applyStatement(s: GameState, st: PlayerStatement, defences: Record<Id, number>): Speech[] {
@@ -238,6 +265,11 @@ export function castVotes(s: GameState, playerVote: Id, defences: Record<Id, num
   const finalise = (n: Npc, choice: Id | undefined): void => {
     let pick = valid(n, choice) ? choice : topSuspect(s, n);
     if (pick === PLAYER_ID && n.bribedDay === s.day) pick = topSuspect(s, n, [PLAYER_ID]);
+    // A gentler first day: a vague feeling about the player isn't enough to vote them out (open-questions #8).
+    const feeling = n.suspicion[PLAYER_ID] ?? s.balance.suspicion.initial;
+    if (pick === PLAYER_ID && s.day === 1 && feeling < s.balance.firstDay.playerVoteFloor) {
+      pick = topSuspect(s, n, [PLAYER_ID]);
+    }
     if (pick) votes[n.id] = pick;
   };
 
@@ -290,12 +322,19 @@ export function chooseBanished(s: GameState, votes: Record<Id, Id>): Id {
   return tied.length === 1 ? (tied[0] as Id) : rollPick(s, tied);
 }
 
-export function resolveRoundTable(s: GameState, playerVote: Id, statement: PlayerStatement): void {
+export function resolveRoundTable(
+  s: GameState,
+  playerVote: Id,
+  statement: PlayerStatement,
+  answer: LieAnswer = 'standBy',
+): void {
   const b = s.balance;
   const defences: Record<Id, number> = {};
   const speeches = roundTableSpeeches(s);
-  for (const sp of speeches) applySpeech(s, sp, defences);
-  const reactions = applyStatement(s, statement, defences);
+  const answered = speeches.some((sp) => sp.kind === 'contradiction');
+  const reactions: Speech[] = [];
+  for (const sp of speeches) reactions.push(...applySpeech(s, sp, defences, answer));
+  reactions.push(...applyStatement(s, statement, defences));
 
   // Keeping to yourself: Faithfuls you never spoke to today trust you a little less.
   const strangers = aliveNpcs(s).filter((n) => !s.player.contactsToday.includes(n.id));
@@ -307,7 +346,15 @@ export function resolveRoundTable(s: GameState, playerVote: Id, statement: Playe
   const votes = castVotes(s, playerVote, defences);
   const banished = chooseBanished(s, votes);
   s.lastVote = { day: s.day, votes, banished };
-  s.lastTable = { day: s.day, speeches, statement, reactions, votes, banished };
+  s.lastTable = {
+    day: s.day,
+    speeches,
+    statement,
+    ...(answered ? { answer } : {}),
+    reactions,
+    votes,
+    banished,
+  };
   s.history.tables.push(structuredClone(s.lastTable));
   log(
     s,

@@ -22,8 +22,8 @@ describe('rumours and lies', () => {
 
   it('a lie the Detective can disprove is called out at the Round Table (M3 done-when)', () => {
     let s = setup();
-    // Lie to Marcus: "Theo was in the library." Theo never leaves the kitchen, and Marcus sees him there at tick 2.
-    s = play(s, { type: 'seedDoubt', npc: 'marcus', target: 'theo', room: 'library', isLie: true });
+    // Lie to Marcus: "Theo was in the hall." Theo never leaves the kitchen, and Marcus sees him there at tick 2.
+    s = play(s, { type: 'seedDoubt', npc: 'marcus', target: 'theo', room: 'hall', isLie: true });
     s = play(s, { type: 'endDay' });
     expect(s.player.lies).toHaveLength(1);
     expect(roundTableSpeeches(s)).toContainEqual(
@@ -37,6 +37,12 @@ describe('rumours and lies', () => {
 
   it('a true claim is not called out', () => {
     let s = setup();
+    // Walk to the kitchen: at tick 2 you, Marcus and Theo are all there, so the claim is something you saw.
+    s = play(
+      s,
+      { type: 'move', to: 'dining', sneaking: false },
+      { type: 'move', to: 'kitchen', sneaking: false },
+    );
     s = play(s, { type: 'seedDoubt', npc: 'marcus', target: 'theo', room: 'kitchen', isLie: false });
     s = play(s, { type: 'endDay' });
     expect(roundTableSpeeches(s).filter((sp) => sp.kind === 'contradiction')).toHaveLength(0);

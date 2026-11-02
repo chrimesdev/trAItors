@@ -22,7 +22,8 @@
     "check": "npm run typecheck && npm run lint && npm run format:check && npm test",
     "replay": "tsx scripts/replay.ts",
     "balance": "tsx scripts/balance.ts",
-    "tune": "tsx scripts/tune.ts"
+    "tune": "tsx scripts/tune.ts",
+    "cover": "tsx scripts/cover.ts"
   },
   "dependencies": {
     "phaser": "4.2.1"

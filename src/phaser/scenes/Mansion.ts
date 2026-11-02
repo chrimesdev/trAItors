@@ -1,28 +1,28 @@
 import Phaser from 'phaser';
-import { ARCHETYPE_COLOUR } from '../../app/palette';
 import type { GameStore } from '../../app/store';
-import { rumourText, watchingYou, whispersSince, type Archetype, type Rumour } from '../../sim';
+import { rumourText, watchingYou, whispersSince, type Rumour } from '../../sim';
 import mansion from '../../content/mansion.json';
 import { aliveOnly, type GameState, type Id } from '../view';
+import { drawShapes } from '../../app/art/draw';
+import { audio } from '../../app/audio';
+import { FIGURE, figure, lookOf } from '../../app/art/looks';
 import { Layout, TILE, type Point } from '../systems/layout';
+import { ITEM, drawItem } from '../systems/items';
+import { paintMansion } from '../systems/paint';
 import { angleDiff, conePolygon, glanceWeight, inCone, sweepFacing, type Rect } from '../systems/vision';
 
 const WALK_SPEED = 120;
 const SNEAK_FACTOR = 0.5;
-const PLAYER_RADIUS = 7;
+const PLAYER_RADIUS = 6;
 const NPC_RADIUS = 9;
+const FIGURE_SCALE = 1.25;
 // Tells: a wary NPC turns to look straight at you this often, for this long.
 const GLANCE_PERIOD_MS = 3600;
 const GLANCE_HOLD_MS = 900;
 const WHISPER_MS = 2800;
+const STEP_MS = 300;
 
 const PALETTE = {
-  wall: 0x0e0e1a,
-  door: 0x3a2f2a,
-  floors: [
-    0x2c3b33, 0x3b2f3f, 0x30324a, 0x3a3346, 0x2f3a45, 0x3a3428, 0x3e2e2e, 0x33302a, 0x2a2a30, 0x3a3a32,
-  ],
-  player: 0xff4d6d,
   cone: 0xf5d76e,
   coneAlert: 0xff4d6d,
   label: '#8f8aa3',
@@ -38,10 +38,13 @@ export interface MansionCallbacks {
   /** E pressed: open the interaction menu for the current room. */
   openInteract(): void;
   onSneakChange(sneaking: boolean): void;
+  /** A DOM panel opened or closed. */
+  onUiChange?(): void;
 }
 
 interface NpcView {
-  body: Phaser.GameObjects.Arc;
+  body: Phaser.GameObjects.Sprite;
+  shadow: Phaser.GameObjects.Ellipse;
   label: Phaser.GameObjects.Text;
   cone: Phaser.GameObjects.Graphics;
   room: Id | null;
@@ -62,7 +65,8 @@ export class MansionScene extends Phaser.Scene {
   private store!: GameStore;
   private ui!: MansionCallbacks;
   private layout!: Layout;
-  private player!: Phaser.GameObjects.Arc;
+  private player!: Phaser.GameObjects.Sprite;
+  private playerShadow!: Phaser.GameObjects.Ellipse;
   private body_!: Phaser.Physics.Arcade.Body;
   private npcs = new Map<Id, NpcView>();
   private evidence = new Map<Id, Phaser.GameObjects.Container>();
@@ -71,6 +75,8 @@ export class MansionScene extends Phaser.Scene {
     Phaser.Input.Keyboard.Key
   >;
   private sneaking = false;
+  private wasBlocked = false;
+  private nextStepAt = 0;
   private unsubscribe?: () => void;
 
   constructor() {
@@ -97,43 +103,33 @@ export class MansionScene extends Phaser.Scene {
 
   private buildMap(): void {
     const t = this.layout.tileSize;
-    const floors = PALETTE.floors;
     const count = TILE.FLOOR0 + this.layout.def.rooms.length;
 
-    const canvas = this.textures.createCanvas('tiles', t * count, t);
-    const ctx = canvas?.getContext();
-    if (!canvas || !ctx) throw new Error('Could not create tile texture');
-    const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
-    for (let i = 0; i < count; i++) {
-      const colour =
-        i === TILE.WALL
-          ? PALETTE.wall
-          : i === TILE.DOOR
-            ? PALETTE.door
-            : floors[(i - TILE.FLOOR0) % floors.length];
-      ctx.fillStyle = hex(colour ?? PALETTE.wall);
-      ctx.fillRect(i * t, 0, t, t);
-      if (i >= TILE.FLOOR0) {
-        // Faint grid so movement reads on a flat floor.
-        ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-        ctx.strokeRect(i * t + 0.5, 0.5, t - 1, t - 1);
-      }
-    }
-    canvas.refresh();
-
+    // The tilemap only provides wall collision; what you see is painted below.
+    const tiles = this.textures.createCanvas('tiles', t * count, t);
+    if (!tiles) throw new Error('Could not create tile texture');
+    tiles.refresh();
     const map = this.make.tilemap({ data: this.layout.tileData(), tileWidth: t, tileHeight: t });
     const tileset = map.addTilesetImage('tiles', 'tiles', t, t, 0, 0);
     if (!tileset) throw new Error('Could not add tileset');
     const layer = map.createLayer(0, tileset, 0, 0);
     if (!layer) throw new Error('Could not create map layer');
-    layer.setCollision([TILE.WALL]);
+    layer.setCollision([TILE.WALL]).setVisible(false);
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.data.set('layer', layer);
 
+    const art = this.textures.createCanvas('mansion', map.widthInPixels, map.heightInPixels);
+    const ctx = art?.getContext();
+    if (!art || !ctx) throw new Error('Could not create mansion texture');
+    paintMansion(ctx, this.layout);
+    art.refresh();
+    this.add.image(0, 0, 'mansion').setOrigin(0).setDepth(0);
+
     const names = this.store.state.rooms;
     for (const r of this.layout.def.rooms) {
+      // Name plates sit on the wall above each room, clear of the furniture.
       this.add
-        .text(r.x * t + 4, r.y * t + 2, (names[r.id]?.name ?? r.id).toUpperCase(), {
+        .text(r.x * t + 4, r.y * t - 12, (names[r.id]?.name ?? r.id).toUpperCase(), {
           fontFamily: 'system-ui, sans-serif',
           fontSize: '9px',
           color: PALETTE.label,
@@ -142,13 +138,51 @@ export class MansionScene extends Phaser.Scene {
     }
   }
 
+  private itemTexture(id: string): string {
+    const key = `item-${id}`;
+    if (this.textures.exists(key)) return key;
+    const tex = this.textures.createCanvas(key, ITEM.w, ITEM.h);
+    const ctx = tex?.getContext();
+    if (!tex || !ctx) throw new Error('Could not create item texture');
+    drawItem(ctx, id);
+    tex.refresh();
+    return key;
+  }
+
+  /** A two-frame walking sprite sheet drawn from the character's look. */
+  private characterSheet(id: string): string {
+    const key = `char-${id}`;
+    if (this.textures.exists(key)) return key;
+    const tex = this.textures.createCanvas(key, FIGURE.w * 2, FIGURE.h);
+    const ctx = tex?.getContext();
+    if (!tex || !ctx) throw new Error('Could not create character texture');
+    const look = lookOf(id);
+    drawShapes(ctx, figure(look, 0), 0, 0);
+    drawShapes(ctx, figure(look, 1), FIGURE.w, 0);
+    tex.add('f0', 0, 0, 0, FIGURE.w, FIGURE.h);
+    tex.add('f1', 0, FIGURE.w, 0, FIGURE.w, FIGURE.h);
+    tex.refresh();
+    this.anims.create({
+      key: `walk-${id}`,
+      frames: [
+        { key, frame: 'f0' },
+        { key, frame: 'f1' },
+      ],
+      frameRate: 6,
+      repeat: -1,
+    });
+    return key;
+  }
+
   private createPlayer(): void {
     const start = this.layout.centre(this.store.state.startRoom);
-    this.player = this.add.circle(start.x, start.y, PLAYER_RADIUS, PALETTE.player).setDepth(10);
-    this.player.setStrokeStyle(2, 0xffffff, 0.8);
+    const key = this.characterSheet('player');
+    this.playerShadow = this.add.ellipse(start.x, start.y + 12, 16, 6, 0x000000, 0.35).setDepth(8);
+    this.player = this.add.sprite(start.x, start.y, key, 'f0').setScale(FIGURE_SCALE).setDepth(10);
     this.physics.add.existing(this.player);
     this.body_ = this.player.body as Phaser.Physics.Arcade.Body;
-    this.body_.setCircle(PLAYER_RADIUS);
+    // Collide with the feet, not the head, so the figure can stand close to walls.
+    this.body_.setCircle(PLAYER_RADIUS, FIGURE.w / 2 - PLAYER_RADIUS, FIGURE.h - PLAYER_RADIUS * 2 - 1);
     this.body_.setCollideWorldBounds(true);
     const layer = this.data.get('layer') as Phaser.Tilemaps.TilemapLayer;
     this.physics.add.collider(this.player, layer);
@@ -203,8 +237,9 @@ export class MansionScene extends Phaser.Scene {
       view.label.setColor(view.wary ? PALETTE.nameWary : PALETTE.name);
 
       if (!npc.alive) {
-        this.tweens.killTweensOf([view.body, view.label, view.cone]);
+        this.tweens.killTweensOf([view.body, view.shadow, view.label, view.cone]);
         view.body.setVisible(false);
+        view.shadow.setVisible(false);
         view.label.setVisible(false);
         view.cone.setVisible(false);
         view.room = null;
@@ -221,7 +256,7 @@ export class MansionScene extends Phaser.Scene {
 
       // Fade out, move, fade in: NPCs don't path-find in M2. Several ticks can pass in one
       // update (e.g. "end day"), so cancel any fade in flight and always land on the latest spot.
-      const parts = [view.body, view.label, view.cone];
+      const parts = [view.body, view.shadow, view.label, view.cone];
       this.tweens.killTweensOf(parts);
       if (instant) {
         for (const p of parts) p.setAlpha(1);
@@ -240,9 +275,9 @@ export class MansionScene extends Phaser.Scene {
     });
   }
 
-  private createNpcView(id: Id, name: string, archetype: string, index: number): NpcView {
-    const colour = ARCHETYPE_COLOUR[archetype as Archetype] ?? 0xcccccc;
-    const body = this.add.circle(0, 0, NPC_RADIUS, colour).setDepth(9).setStrokeStyle(2, 0x1a1a2e);
+  private createNpcView(id: Id, name: string, _archetype: string, index: number): NpcView {
+    const shadow = this.add.ellipse(0, 0, 16, 6, 0x000000, 0.35).setDepth(8);
+    const body = this.add.sprite(0, 0, this.characterSheet(id), 'f0').setScale(FIGURE_SCALE).setDepth(9);
     const label = this.add
       .text(0, 0, name, { fontFamily: 'system-ui, sans-serif', fontSize: '10px', color: '#f3f1ee' })
       .setOrigin(0.5, 0)
@@ -250,6 +285,7 @@ export class MansionScene extends Phaser.Scene {
     const cone = this.add.graphics().setDepth(5);
     const view: NpcView = {
       body,
+      shadow,
       label,
       cone,
       room: null,
@@ -267,7 +303,8 @@ export class MansionScene extends Phaser.Scene {
   private placeNpc(view: NpcView, at: Point): void {
     view.pos = at;
     view.body.setPosition(at.x, at.y).setVisible(true);
-    view.label.setPosition(at.x, at.y + NPC_RADIUS + 1).setVisible(true);
+    view.shadow.setPosition(at.x, at.y + 12).setVisible(true);
+    view.label.setPosition(at.x, at.y + NPC_RADIUS + 6).setVisible(true);
     view.cone.setVisible(true);
   }
 
@@ -281,16 +318,17 @@ export class MansionScene extends Phaser.Scene {
         return;
       }
       if (!view) {
-        const box = this.add.rectangle(0, 0, 10, 10, 0xf3f1ee).setStrokeStyle(1, 0x1a1a2e);
+        const ring = this.add.circle(0, 0, 12, 0xff4d6d, 0.22);
+        const icon = this.add.image(0, 0, this.itemTexture(ev.id)).setScale(1.25);
         const text = this.add
-          .text(0, 8, ev.name, { fontFamily: 'system-ui, sans-serif', fontSize: '8px', color: '#c9b6bb' })
+          .text(0, 11, ev.name, { fontFamily: 'system-ui, sans-serif', fontSize: '8px', color: '#c9b6bb' })
           .setOrigin(0.5, 0);
-        view = this.add.container(0, 0, [box, text]).setDepth(4);
+        view = this.add.container(0, 0, [ring, icon, text]).setDepth(4);
         this.evidence.set(ev.id, view);
       }
       const at = this.layout.evidenceSpot(ev.location, index);
       view.setPosition(at.x, at.y).setVisible(true);
-      (view.list[0] as Phaser.GameObjects.Rectangle).setFillStyle(ev.plantedBy ? 0xff4d6d : 0xf3f1ee);
+      (view.list[0] as Phaser.GameObjects.Arc).setVisible(Boolean(ev.plantedBy));
     });
   }
 
@@ -373,6 +411,10 @@ export class MansionScene extends Phaser.Scene {
     const s = this.store.state;
     const k = this.keys;
     const blocked = this.ui.isUiBlocking() || s.phase !== 'day';
+    if (blocked !== this.wasBlocked) {
+      this.wasBlocked = blocked;
+      this.ui.onUiChange?.();
+    }
 
     const sneaking = k.shift.isDown;
     if (sneaking !== this.sneaking) {
@@ -390,6 +432,19 @@ export class MansionScene extends Phaser.Scene {
     const len = Math.hypot(vx, vy) || 1;
     const speed = WALK_SPEED * (sneaking ? SNEAK_FACTOR : 1);
     this.body_.setVelocity((vx / len) * speed, (vy / len) * speed);
+    this.playerShadow.setPosition(this.player.x, this.player.y + 12);
+    if (vx || vy) {
+      if (!this.player.anims.isPlaying) this.player.play('walk-player');
+      this.player.anims.timeScale = sneaking ? 0.5 : 1;
+      if (vx) this.player.setFlipX(vx < 0);
+      if (this.time.now >= this.nextStepAt) {
+        audio.play(sneaking ? 'sneakStep' : 'step');
+        this.nextStepAt = this.time.now + STEP_MS * (sneaking ? 1.6 : 1);
+      }
+    } else if (this.player.anims.isPlaying) {
+      this.player.stop();
+      this.player.setFrame('f0');
+    }
 
     if (!blocked) this.checkRoomChange();
     this.drawCones(blocked);
@@ -422,8 +477,11 @@ export class MansionScene extends Phaser.Scene {
       const facing = this.facing(v);
       const covering = v.room === s.player.room && this.coversPlayer(v);
 
-      // Stepping into a cone is a free detection check by the engine.
-      if (covering && !v.wasInCone && !frozen && s.phase === 'day') {
+      // Stepping into a cone is a free detection check by the engine, at most once per tick per NPC
+      // (the engine ignores repeats, so don't clutter the command history with them).
+      const checked = s.npcs[id]?.lastSpotCheck;
+      const alreadyChecked = checked?.day === s.day && checked.tick === s.tick;
+      if (covering && !v.wasInCone && !frozen && s.phase === 'day' && !alreadyChecked) {
         this.store.dispatch({ type: 'spotted', npc: id, sneaking: this.sneaking });
       }
       v.wasInCone = covering;

@@ -22,6 +22,15 @@ export function chat(s: GameState, npcId: Id): void {
 
   s.lastReveal = { npc: npcId, suspects, attitude, sightings };
   log(s, `You chat with ${npc.name}.`);
+  const names = suspects.map((id) => s.npcs[id]?.name ?? id);
+  const seen = sightings.map(
+    (m) => `${s.npcs[m.subject]?.name ?? m.subject} in the ${s.rooms[m.room]?.name ?? m.room}`,
+  );
+  log(
+    s,
+    `${npc.name} suspects ${names.length ? names.join(' and ') : 'nobody in particular'}` +
+      (seen.length ? `, and saw ${seen.join(', ')}.` : '.'),
+  );
 }
 
 export function ally(s: GameState, npcId: Id): void {

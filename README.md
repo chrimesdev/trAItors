@@ -11,7 +11,7 @@ You are the only Traitor in a mansion of six AI Faithfuls. By day you roam the r
 ## Play
 
 - **Play in your browser:** https://chrimesdev.github.io/traitors/ (latest `main`; itch.io page coming in M6)
-- Controls: WASD / arrows to move, hold **Shift** to sneak, **E** to act, **1–9** to pick an option
+- Controls: WASD / arrows to move, hold **Shift** to sneak (and to lie), **E** to act, **1–9** to pick an option, **Esc** for the menu and the log
 - Add `?seed=123` to the URL to replay a specific game; your game saves automatically and **Continue** picks it up
 - Playtesting? See [`docs/playtest.md`](docs/playtest.md)
 
@@ -28,6 +28,7 @@ npm run sim -- --seed 42   # headless simulation run
 npm run replay -- report.txt  # replay a playtester's run report
 npm run balance            # win rate and game length for idle / naive / careful scripted players
 npm run tune               # grid-search balance knobs against the targets (a few minutes)
+npm run cover              # regenerate the itch.io cover page from the in-game portraits
 npm run build      # static build in dist/ for itch.io
 ```
 
@@ -41,27 +42,27 @@ src/phaser/   scenes and sprites; renders sim state and sends commands
 src/ui/       DOM overlay: HUD, dialogue, trust web, Round Table
 src/content/  rooms, NPCs, evidence and dialogue templates as JSON
 tests/sim/    Vitest tests for the simulation
-docs/         one-pager and full implementation plan (PDF)
+docs/         one-pager, full implementation plan (PDF), playtest guide, itch.io kit and press shots
 ```
 
 See [`docs/implementation-plan.pdf`](docs/implementation-plan.pdf) for the full design, data model, rules and milestones, and [`AGENTS.md`](AGENTS.md) for the architecture rules.
 
 ## Roadmap
 
-| Milestone | Dates     | Goal                                                  |
-| --------- | --------- | ----------------------------------------------------- |
-| M0        | 2 Nov     | Tooling, CI, placeholder scene ✅                     |
-| M1        | 3–6 Nov   | Simulation core: sightings, evidence, votes, night ✅ |
-| M2        | 7–10 Nov  | Mansion scene: tilemap, NPC schedules, sight cones ✅ |
-| M3        | 11–16 Nov | Dialogue, rumours, Round Table UI, trust web ✅       |
-| M4        | 17–19 Nov | Full loop, win/lose ✅ · first playtest pending       |
-| M5        | 20–23 Nov | Balance and feel ✅ · tells, first-day coach          |
-| M6        | 24–27 Nov | Art, audio, itch.io page                              |
-| M7        | 28–29 Nov | Ship (hard deadline 1 Dec 2026, 13:37 PST / 21:37 UK) |
+| Milestone | Dates     | Goal                                                         |
+| --------- | --------- | ------------------------------------------------------------ |
+| M0        | 2 Nov     | Tooling, CI, placeholder scene ✅                            |
+| M1        | 3–6 Nov   | Simulation core: sightings, evidence, votes, night ✅        |
+| M2        | 7–10 Nov  | Mansion scene: tilemap, NPC schedules, sight cones ✅        |
+| M3        | 11–16 Nov | Dialogue, rumours, Round Table UI, trust web ✅              |
+| M4        | 17–19 Nov | Full loop, win/lose ✅ · first playtest pending              |
+| M5        | 20–23 Nov | Balance and feel ✅ · tells, first-day coach                 |
+| M6        | 24–27 Nov | Art, audio, itch.io page ✅ · GIF and browser matrix pending |
+| M7        | 28–29 Nov | Ship (hard deadline 1 Dec 2026, 13:37 PST / 21:37 UK)        |
 
 ## AI use disclosure
 
-Game Off asks entrants to describe their use of AI. This project uses AI coding assistants for planning, scaffolding and implementation, reviewed by the developer. The in-game "AI" characters are deterministic rule-based agents; no generative AI runs at play time.
+Game Off asks entrants to describe their use of AI. This project uses AI coding assistants (Claude) for planning, scaffolding, implementation and review, directed and checked by the developer. All art is drawn in code and all sound is synthesised at runtime; no generated images or audio were used. The in-game "AI" characters are deterministic rule-based agents; no generative AI runs at play time.
 
 ## Licence
 

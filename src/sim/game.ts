@@ -15,6 +15,7 @@ import { checkPlayer, npcArrives, playerArrives } from './sightings';
 import { noteArrivalGlance, noteGlances } from './tells';
 import { aliveNpcs, log, nameOf, npcRoom, rollFloat, roomName } from './state';
 import { ally, bribe, chat } from './verbs';
+import { playerSawToday, roomsPlayerVisitedToday } from './queries';
 import { isAdjacent, roomsVisitedToday } from './world';
 import {
   PLAYER_ID,
@@ -60,6 +61,13 @@ export function createGame(seed: number, content: Content, balance: Balance = BA
       memory: [],
       trusts,
     };
+  }
+
+  // Starting relationships: the web has lines before the first vote.
+  for (const c of content.npcs) {
+    for (const [other, value] of Object.entries(c.trusts ?? {})) {
+      if (npcs[other] && other !== c.id) npcs[c.id]!.trusts[other] = Math.max(-1, Math.min(1, value));
+    }
   }
 
   const rooms: Record<Id, Room> = {};
@@ -169,6 +177,9 @@ export function validateCommand(s: GameState, c: Command): string | null {
       if (c.target === c.npc) return 'you cannot seed doubt about someone to their face';
       if (!s.npcs[c.target]?.alive) return `"${c.target}" is not a living Faithful`;
       if (c.room !== undefined && !s.rooms[c.room]) return `unknown room "${c.room}"`;
+      if (c.room !== undefined && !roomsPlayerVisitedToday(s).includes(c.room)) {
+        return `you were never in ${c.room} today, so you cannot claim to have seen anyone there`;
+      }
       return null;
     }
     case 'endDay':
@@ -280,7 +291,7 @@ export function applyCommand(state: GameState, c: Command): GameState {
       while (s.phase === 'day') endOfAction(s);
       break;
     case 'resolveRoundTable':
-      resolveRoundTable(s, c.playerVote, c.statement ?? { kind: 'quiet' });
+      resolveRoundTable(s, c.playerVote, c.statement ?? { kind: 'quiet' }, c.answer ?? 'standBy');
       break;
     case 'murder':
       murder(s, c.victim, c.room);
@@ -313,11 +324,13 @@ export function legalCommands(s: GameState): Command[] {
       for (const t of aliveNpcs(s)) {
         if (t.id === n.id) continue;
         out.push({ type: 'seedDoubt', npc: n.id, target: t.id, isLie: false });
-        const truthful = roomsVisitedToday(s, t.id);
-        for (const room of new Set(truthful)) {
+        // You can only claim to have seen someone where you actually were (open-questions #6):
+        // truthful claims are rooms you shared with them; a lie is any other room you visited.
+        const truthful = playerSawToday(s, t.id);
+        for (const room of truthful) {
           out.push({ type: 'seedDoubt', npc: n.id, target: t.id, room, isLie: false });
         }
-        const lie = Object.keys(s.rooms).find((r) => !truthful.includes(r));
+        const lie = roomsPlayerVisitedToday(s).find((r) => !truthful.includes(r));
         if (lie) out.push({ type: 'seedDoubt', npc: n.id, target: t.id, room: lie, isLie: true });
       }
     }

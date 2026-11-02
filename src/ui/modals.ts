@@ -18,7 +18,7 @@ export function mountModals(
   deps: { visibleTo: () => Id[]; openTalk: (npc: Id) => void; hideEndDay?: () => boolean },
 ): Modals {
   const el = document.createElement('div');
-  el.className = 'modal panel interactive';
+  el.className = 'dialogue interact interactive';
   el.hidden = true;
   overlay.appendChild(el);
   let choices: Choice[] = [];
@@ -51,9 +51,11 @@ export function mountModals(
     const actions = legalCommands(s)
       .filter((c) => MENU_TYPES.includes(c.type) && !(hideEndDay && c.type === 'endDay'))
       .map((c) => ({ label: describeCommand(s, c), onPick: () => send(c) }));
-    el.innerHTML = `<h3>${room(s, s.player.room)}</h3><p class="hint">Each action uses one of your day’s actions. <kbd>Esc</kbd> to close.</p>`;
+    el.innerHTML = `<div class="body"><h3 class="name">${room(s, s.player.room)}</h3>
+      <p class="text">${here.length ? `${here.map((n) => n.name).join(' and ')} ${here.length === 1 ? 'is' : 'are'} here.` : 'Nobody else is here.'}</p>
+      <p class="hint">Each action uses one of your day’s actions. <kbd>Esc</kbd> to close.</p><div class="options"></div></div>`;
     choices = [...talk, ...actions];
-    renderChoices(el, choices);
+    renderChoices(el.querySelector('.options') as HTMLElement, choices);
     el.hidden = false;
   };
 

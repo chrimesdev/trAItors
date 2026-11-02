@@ -3,37 +3,60 @@
     "id": "marcus",
     "name": "Marcus",
     "archetype": "detective",
-    "schedule": ["library", "study", "library", "hall", "dining", "lounge"]
+    "schedule": ["library", "study", "library", "hall", "dining", "lounge"],
+    "trusts": {
+      "rosa": 0.2,
+      "imogen": -0.1
+    }
   },
   {
     "id": "priya",
     "name": "Priya",
     "archetype": "sheep",
-    "schedule": ["kitchen", "dining", "hall", "lounge", "conservatory", "lounge"]
+    "schedule": ["kitchen", "dining", "hall", "lounge", "conservatory", "lounge"],
+    "trusts": {
+      "dalton": 0.4,
+      "marcus": 0.2
+    }
   },
   {
     "id": "dalton",
     "name": "Dalton",
     "archetype": "loyalist",
-    "schedule": ["hall", "lounge", "conservatory", "lounge", "hall", "dining"]
+    "schedule": ["hall", "lounge", "conservatory", "lounge", "hall", "dining"],
+    "trusts": {
+      "priya": 0.4
+    }
   },
   {
     "id": "imogen",
     "name": "Imogen",
     "archetype": "grudge",
-    "schedule": ["bedroomCorridor", "stairsLanding", "hall", "library", "study", "library"]
+    "schedule": ["bedroomCorridor", "stairsLanding", "hall", "library", "study", "library"],
+    "trusts": {
+      "marcus": -0.3,
+      "priya": 0.1
+    }
   },
   {
     "id": "theo",
     "name": "Theo",
     "archetype": "paranoid",
-    "schedule": ["cellar", "kitchen", "dining", "kitchen", "cellar", "kitchen"]
+    "schedule": ["cellar", "kitchen", "dining", "kitchen", "cellar", "kitchen"],
+    "trusts": {
+      "marcus": -0.3,
+      "rosa": -0.3
+    }
   },
   {
     "id": "rosa",
     "name": "Rosa",
     "archetype": "detective",
     "weakDetective": true,
-    "schedule": ["conservatory", "lounge", "hall", "stairsLanding", "bedroomCorridor", "stairsLanding"]
+    "schedule": ["conservatory", "lounge", "hall", "stairsLanding", "bedroomCorridor", "stairsLanding"],
+    "trusts": {
+      "marcus": 0.3,
+      "theo": -0.1
+    }
   }
 ]

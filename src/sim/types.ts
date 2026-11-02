@@ -25,6 +25,8 @@ export interface NpcContent {
   weakDetective?: boolean;
   /** Base room per tick; wander rolls perturb it each day. */
   schedule: Id[];
+  /** Starting relationships, -1..1 toward other NPCs (open-questions #5). */
+  trusts?: Record<Id, number>;
 }
 
 export interface EvidenceContent {
@@ -159,7 +161,9 @@ export type SpeechKind =
   | 'grudge'
   | 'alibiConfirmed'
   | 'alibiDisproved'
-  | 'quietNoted';
+  | 'quietNoted'
+  | 'lieRetracted'
+  | 'lieStoodBy';
 
 /** Structured speech. Dialogue templates (M3) turn these into words. */
 export interface Speech {
@@ -171,10 +175,14 @@ export interface Speech {
   rumourId?: number;
 }
 
+/** How the player answers a Detective who has caught their lie (open-questions #4). */
+export type LieAnswer = 'retract' | 'standBy';
+
 export interface TableRecord {
   day: number;
   speeches: Speech[];
   statement: PlayerStatement;
+  answer?: LieAnswer;
   /** How the table reacted to the player's statement (e.g. a Detective checking an alibi). */
   reactions: Speech[];
   votes: Record<Id, Id>;
@@ -232,5 +240,5 @@ export type Command =
   | { type: 'ally'; npc: Id }
   | { type: 'bribe'; npc: Id }
   | { type: 'endDay' }
-  | { type: 'resolveRoundTable'; playerVote: Id; statement?: PlayerStatement }
+  | { type: 'resolveRoundTable'; playerVote: Id; statement?: PlayerStatement; answer?: LieAnswer }
   | { type: 'murder'; victim: Id; room: Id };

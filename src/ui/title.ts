@@ -2,6 +2,7 @@
 import type { GameStore } from '../app/store';
 import { readSave, type KeyValueStorage, type SaveFile } from '../app/save';
 import { choiceIndexFromKey, renderChoices, type Choice } from './choices';
+import { toggleFullscreen } from './effects';
 
 export interface Title {
   isOpen(): boolean;
@@ -100,6 +101,7 @@ export function mountTitle(
         { label: 'New game', onPick: () => start(() => store.newGame(deps.randomSeed())) },
         { label: 'New game from a seed…', onPick: () => ((view = 'seed'), draw()) },
         { label: 'How to play', onPick: () => ((view = 'help'), draw()) },
+        { label: 'Fullscreen', onPick: toggleFullscreen },
       );
     }
     renderChoices(body, choices);

@@ -124,6 +124,16 @@ export function contradictions(s: GameState): { detective: Id; rumour: Rumour }[
   return out;
 }
 
+/** The player takes a story back: everyone who heard it drops the doubt it caused, and the copies are gone. */
+export function withdrawRumour(s: GameState, rumour: Rumour): void {
+  const copies = s.rumours.filter((r) => sameStory(r, rumour));
+  for (const r of copies) {
+    const holder = s.npcs[r.holder];
+    if (holder?.alive) addSuspicion(s, holder, r.target, -r.strength * influence(holder, r.teller));
+  }
+  s.rumours = s.rumours.filter((r) => !sameStory(r, rumour));
+}
+
 /** Marks every copy of a disproved story as contradicted and records it against the lie. */
 export function markContradicted(s: GameState, rumour: Rumour, detective: Id): void {
   for (const r of s.rumours) if (sameStory(r, rumour)) r.contradicted = true;

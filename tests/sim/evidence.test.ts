@@ -48,7 +48,10 @@ describe('evidence', () => {
     const before = s.npcs.priya?.suspicion.player ?? 0;
     s = play(s, { type: 'plant', evidence: 'cellarKey', room: 'library' });
     expect(s.evidence.cellarKey?.witnessed).toBe(true);
-    expect(s.npcs.priya?.suspicion.player).toBe(before + 40);
+    // Day 1 is gentler (open-questions #8): half the usual penalty.
+    expect(s.npcs.priya?.suspicion.player).toBe(
+      before + s.balance.evidence.witnessedPlantPenalty * s.balance.firstDay.witnessFactor,
+    );
 
     s = play(s, { type: 'endDay' });
     expect(roundTableSpeeches(s)).toContainEqual(

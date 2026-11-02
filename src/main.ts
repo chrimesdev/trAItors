@@ -3,15 +3,15 @@ import { browserStorage } from './app/save';
 import { GameStore, randomSeed, seedFromUrl } from './app/store';
 import { MansionScene } from './phaser/scenes/Mansion';
 import type { GameState } from './sim';
+import { mountCaptions } from './ui/captions';
 import { mountCoach } from './ui/coach';
+import { cueSounds } from './ui/effects';
 import { mountEndScreen } from './ui/endScreen';
-import { mountFeed } from './ui/feed';
 import { mountHud } from './ui/hud';
 import { mountModals } from './ui/modals';
 import { mountMorning } from './ui/morning';
 import { mountNight } from './ui/night';
 import { mountPause } from './ui/pause';
-import { mountReveal } from './ui/reveal';
 import { mountRoundTable } from './ui/roundTable';
 import { mountTalk } from './ui/talk';
 import { mountTitle } from './ui/title';
@@ -29,13 +29,8 @@ const store = new GameStore(urlSeed ?? randomSeed(), storage);
 
 let scene: MansionScene | null = null;
 
-const sidebar = document.createElement('aside');
-sidebar.className = 'sidebar';
-overlay.appendChild(sidebar);
-const hud = mountHud(sidebar, () => pause.open());
-const coach = mountCoach(sidebar, store, storage);
-const reveal = mountReveal(sidebar);
-const feed = mountFeed(sidebar);
+const hud = mountHud(overlay, () => pause.open());
+const coach = mountCoach(overlay, store, storage);
 
 // Full-screen moments. The Round Table plays out its reveal after the engine has
 // already moved on, so night and the end screen wait until it closes.
@@ -61,6 +56,7 @@ const title = mountTitle(overlay, store, storage, {
 
 const panels = [modals, talk, table, night, morning, end, title];
 const uiBlocking = (): boolean => panels.some((p) => p.isOpen()) || pause.isOpen();
+const captions = mountCaptions(overlay, uiBlocking);
 
 // Mounted last so it only sees an Escape no other panel used.
 const pause = mountPause(overlay, store, {
@@ -71,10 +67,11 @@ const pause = mountPause(overlay, store, {
 });
 
 function render(s: GameState, prev: GameState | null): void {
+  cueSounds(s, prev);
+  hud.setBusy(uiBlocking());
   hud.render(s);
   coach.render(s);
-  feed.render(s, prev);
-  reveal.render(s);
+  captions.render(s, prev);
   if (title.isOpen()) return; // the game behind the title waits
   talk.render(s);
   table.render(s, prev);
@@ -91,7 +88,7 @@ render(store.state, null);
 const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game',
-  width: 1200, // 960px mansion + 240px sidebar for the HUD (DOM overlay)
+  width: 960, // the mansion fills the frame; the HUD is a DOM overlay on top
   height: 528,
   backgroundColor: '#0e0e1a',
   pixelArt: true,
@@ -105,6 +102,7 @@ game.scene.add('Mansion', MansionScene, true, {
     isUiBlocking: uiBlocking,
     openInteract: () => modals.openInteract(),
     onSneakChange: (sneaking: boolean) => hud.setSneaking(sneaking),
+    onUiChange: () => hud.setBusy(uiBlocking()),
   },
 });
 game.events.once(Phaser.Core.Events.READY, () => {

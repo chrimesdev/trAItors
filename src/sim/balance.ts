@@ -74,6 +74,19 @@ export const BALANCE = {
     verifiedTruthBonus: -5,
     /** Detective must have seen you this many times today to call out a false alibi. */
     alibiSightingsNeeded: 2,
+    /** Answering a caught lie with "I must have been mistaken": penalty × this, and the rumour is withdrawn. */
+    retractFactor: 0.5,
+    /** ...but the Detective trusts you less for it. */
+    retractTrustLoss: -0.2,
+  },
+  /** A gentler first day for new players (open-questions #8). */
+  firstDay: {
+    /** NPCs need this much more suspicion of the player before accusing them at the day-1 table. */
+    playerAccuseThresholdBonus: 15,
+    /** Being seen picking up or planting on day 1 costs this fraction of the usual penalty. */
+    witnessFactor: 0.5,
+    /** On day 1 an NPC only votes for the player if they suspect them at least this much. */
+    playerVoteFloor: 25,
   },
   rumours: {
     exchangeChance: 0.5,

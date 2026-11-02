@@ -1,6 +1,8 @@
 /** Esc menu during play: resume, restart, new game, run report, how to play, title. */
+import { audio } from '../app/audio';
 import type { GameStore } from '../app/store';
 import { choiceIndexFromKey, renderChoices, type Choice } from './choices';
+import { toggleFullscreen } from './effects';
 import { copyOrShow, feedbackUrl } from './report';
 import { runReport } from '../app/save';
 import { HOW_TO_PLAY } from './title';
@@ -26,10 +28,12 @@ export function mountPause(
   overlay.appendChild(el);
   let choices: Choice[] = [];
   let help = false;
+  let showLog = false;
 
   const close = (): void => {
     el.hidden = true;
     help = false;
+    showLog = false;
   };
 
   const draw = (): void => {
@@ -40,12 +44,23 @@ export function mountPause(
       renderChoices(el, choices);
       return;
     }
+    if (showLog) {
+      const lines = s.log
+        .slice(-40)
+        .map((e) => `<p class="${e.day === s.day ? '' : 'muted'}">${e.text}</p>`)
+        .join('');
+      el.innerHTML = `<h3>What happened</h3><div class="help log">${lines}</div>`;
+      choices = [{ label: 'Back', onPick: () => ((showLog = false), draw()) }];
+      renderChoices(el, choices);
+      return;
+    }
     el.innerHTML = `<h3>Paused</h3><p class="hint">Day ${s.day} · seed ${s.seed} · your game saves automatically.</p>`;
     const status = document.createElement('p');
     status.className = 'hint';
     choices = [
       { label: 'Resume', onPick: close },
       { label: 'How to play', onPick: () => ((help = true), draw()) },
+      { label: 'What happened so far', onPick: () => ((showLog = true), draw()) },
       ...(deps.tips
         ? [
             {
@@ -54,6 +69,12 @@ export function mountPause(
             },
           ]
         : []),
+      { label: `Music: ${audio.music ? 'on' : 'off'}`, onPick: () => (audio.setMusic(!audio.music), draw()) },
+      {
+        label: `Sound effects: ${audio.sfx ? 'on' : 'off'}`,
+        onPick: () => (audio.setSfx(!audio.sfx), draw()),
+      },
+      { label: 'Fullscreen', onPick: () => (toggleFullscreen(), close()) },
       { label: `Restart this seed (${s.seed})`, onPick: () => (close(), store.newGame(s.seed)) },
       { label: 'New game', onPick: () => (close(), store.newGame(deps.newSeed())) },
       {
@@ -86,8 +107,9 @@ export function mountPause(
     }
     if (e.key === 'Escape') {
       e.preventDefault();
-      if (help) {
+      if (help || showLog) {
         help = false;
+        showLog = false;
         draw();
       } else close();
       return;

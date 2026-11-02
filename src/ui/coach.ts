@@ -148,13 +148,15 @@ export function mountCoach(sidebar: HTMLElement, store: GameStore, storage: KeyV
       foot = STEPS[current]?.hint(s) ?? '';
     }
 
+    const progress = STEPS.map(
+      (st, i) =>
+        `<span class="step ${done[i] ? 'done' : i === current ? 'now' : ''}" title="${st.title}">${done[i] ? '✓' : i + 1}</span>`,
+    ).join('');
+    const title = allDone ? 'Groundwork done' : (STEPS[current]?.title ?? '');
     el.innerHTML = `
-      <h4>Your first day</h4>
-      <ol>${STEPS.map(
-        (st, i) => `<li class="${done[i] ? 'done' : i === current ? 'now' : ''}">${st.title}</li>`,
-      ).join('')}</ol>
-      <p class="hint">${foot}</p>
-      <button type="button" class="skip">Hide tips</button>`;
+      <div class="steps">${progress}</div>
+      <div class="coach-body"><b>${title}.</b> ${foot}</div>
+      <button type="button" class="skip" title="Hide first-day tips">✕</button>`;
     const skip = el.querySelector('button') as HTMLButtonElement;
     skip.addEventListener('mousedown', (e) => e.preventDefault());
     skip.addEventListener('click', () => {

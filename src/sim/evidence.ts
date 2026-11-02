@@ -17,6 +17,11 @@ export function getEvidence(s: GameState, id: Id): Evidence {
   return ev;
 }
 
+/** New players get a gentler first day: being seen costs less (open-questions #8). */
+function witnessFactor(s: GameState): number {
+  return s.day === 1 ? s.balance.firstDay.witnessFactor : 1;
+}
+
 export function pickUp(s: GameState, id: Id, visibleTo?: Id[]): void {
   const ev = getEvidence(s, id);
   const room = s.player.room;
@@ -24,7 +29,7 @@ export function pickUp(s: GameState, id: Id, visibleTo?: Id[]): void {
   s.player.inventory.push(id);
   log(s, `You pick up the ${ev.name} in the ${roomName(s, room)}.`);
   for (const w of watchers(s, room, visibleTo)) {
-    addSuspicion(s, w, PLAYER_ID, s.balance.evidence.witnessedPickUpPenalty);
+    addSuspicion(s, w, PLAYER_ID, s.balance.evidence.witnessedPickUpPenalty * witnessFactor(s));
     log(s, `${w.name} watches you pocket something.`);
   }
 }
@@ -47,7 +52,7 @@ export function plant(s: GameState, id: Id, room: Id, visibleTo?: Id[]): void {
   ev.foundDay = s.day;
   ev.foundIn = room;
   for (const w of witnesses) {
-    addSuspicion(s, w, PLAYER_ID, s.balance.evidence.witnessedPlantPenalty);
+    addSuspicion(s, w, PLAYER_ID, s.balance.evidence.witnessedPlantPenalty * witnessFactor(s));
     log(s, `${w.name} sees you plant the ${ev.name}!`);
   }
 }

@@ -7,6 +7,12 @@ import evidence from './evidence.json';
 export const defaultContent: Content = {
   startRoom: 'hall',
   rooms,
-  npcs: npcs.map((n) => ({ ...n, archetype: n.archetype as Archetype })),
+  npcs: npcs.map((n) => ({
+    ...n,
+    archetype: n.archetype as Archetype,
+    trusts: Object.fromEntries(
+      Object.entries(n.trusts ?? {}).filter(([, v]) => typeof v === 'number'),
+    ) as Record<string, number>,
+  })),
   evidence,
 };

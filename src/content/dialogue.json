@@ -1,45 +1,51 @@
 {
-  "_comment": "Lines by kind -> archetype (or default) -> band (mid/high, or any). Slots: {speaker} {target} {Target} {room} {item} {about}. {target} becomes 'you' when it is the player.",
+  "_comment": "Lines by kind -> archetype (or default) -> band (mid/high, or any). Slots: {speaker} {target} {Target} {room} {item} {about}. {target} becomes 'you' when it is the player. 'reply' lines answer the player's verbs: slots {suspects} {sightings} (chat), {target} (seedDoubt); 'cold' lines are used when they distrust you.",
   "speech": {
     "accuse": {
       "detective": {
         "mid": [
           "The timings don't add up for {target}.",
           "I've been keeping notes. {Target}'s movements trouble me.",
-          "Small inconsistencies, all of them around {target}."
+          "Small inconsistencies, all of them around {target}.",
+          "Three things don't fit, and all three have {target} in them."
         ],
         "high": [
           "I'll say it plainly: {target}. Every thread I pull leads back there.",
           "I've seen enough. It's {target}.",
-          "Look at the pattern, not the person. The pattern says {target}."
+          "Look at the pattern, not the person. The pattern says {target}.",
+          "I've written {target}'s name down twice today. I'm about to write it a third time."
         ]
       },
       "sheep": {
         "any": [
           "I... I think a few of us are worried about {target}?",
           "Everyone's been saying {target}, and honestly, I agree.",
-          "I don't want to be the one to say it, but... {target}."
+          "I don't want to be the one to say it, but... {target}.",
+          "Please don't be cross, {target}, but... people are talking."
         ]
       },
       "loyalist": {
         "any": [
           "I'd stake my place on it. {Target} isn't one of us.",
           "{Target}. I'm sorry, but it needs saying.",
-          "I'm loyal to the Faithful, and that means naming {target}."
+          "I'm loyal to the Faithful, and that means naming {target}.",
+          "I'd rather be wrong about {target} than silent. I'm not silent."
         ]
       },
       "grudge": {
         "any": [
           "Funny how {target} has kept so quiet. Not any more.",
           "Let's talk about {target}, shall we?",
-          "I've been watching {target}. I don't like what I see."
+          "I've been watching {target}. I don't like what I see.",
+          "{Target} smiles too much when people get hurt. I notice these things."
         ]
       },
       "paranoid": {
         "any": [
           "Nobody's looking at {target}. That's exactly why we should.",
           "{Target} is far too comfortable. Far too comfortable.",
-          "Doesn't anyone else find {target} a little too helpful?"
+          "Doesn't anyone else find {target} a little too helpful?",
+          "Where was {target} when the lights went out? Exactly. Nobody knows."
         ]
       }
     },
@@ -48,7 +54,8 @@
         "any": [
           "Leave {target} alone. I'd trust them with my life.",
           "{Target} is with me. Look elsewhere.",
-          "Whatever you think of {target}, you're wrong."
+          "Whatever you think of {target}, you're wrong.",
+          "Put the knives away. {Target} has been straight with every one of us."
         ]
       }
     },
@@ -119,7 +126,8 @@
       "default": {
         "any": [
           "That checks out. I saw {target} in the {room} myself.",
-          "True enough. {Target} was in the {room}."
+          "True enough. {Target} was in the {room}.",
+          "I can vouch for that. {Target} was in the {room} when I passed."
         ]
       }
     },
@@ -127,7 +135,8 @@
       "default": {
         "any": [
           "The {room}? I had my eye on {target} all day. Not once in the {room}.",
-          "No. I watched {target}. They were never in the {room}."
+          "No. I watched {target}. They were never in the {room}.",
+          "Strange. I was in the {room} myself and {target} was nowhere in it."
         ]
       }
     },
@@ -144,6 +153,28 @@
           "Nothing to say, {target}? Interesting.",
           "Silence is a choice. I've noticed yours."
         ]
+      }
+    },
+    "lieRetracted": {
+      "detective": {
+        "any": [
+          "Mistaken. Hm. See that it doesn't happen again, {target}.",
+          "A mistake. I'll note it as one. For now."
+        ]
+      },
+      "default": {
+        "any": ["Easy mistake, I suppose. I'll let it go."]
+      }
+    },
+    "lieStoodBy": {
+      "detective": {
+        "any": [
+          "Then one of us is lying, {target}. I know which.",
+          "You stand by it? Then I stand by what I saw."
+        ]
+      },
+      "default": {
+        "any": ["Bold. We'll see who's right."]
       }
     }
   },
@@ -173,5 +204,138 @@
       "neutral": ["Why are you talking to me? What do you know?", "Who sent you?"],
       "cold": ["Stay back. I know what you are.", "Everyone's lying. Especially you."]
     }
+  },
+  "reply": {
+    "chat": {
+      "detective": {
+        "any": [
+          "I keep notes. {suspects} {sightings}",
+          "Since you ask, and I'll want to know why you asked: {suspects} {sightings}"
+        ]
+      },
+      "sheep": {
+        "any": [
+          "Everyone's so tense. {suspects} {sightings}",
+          "Oh, um. {suspects} {sightings} Is that helpful?"
+        ]
+      },
+      "loyalist": {
+        "any": ["Straight answer, then. {suspects} {sightings}", "Between us: {suspects} {sightings}"]
+      },
+      "grudge": {
+        "any": [
+          "Since you ask. {suspects} {sightings}",
+          "Fine. {suspects} {sightings} Don't say I never told you anything."
+        ]
+      },
+      "paranoid": {
+        "any": [
+          "Keep your voice down. {suspects} {sightings}",
+          "Why do you want to know? ...{suspects} {sightings}"
+        ]
+      }
+    },
+    "suspects": {
+      "none": "Nobody stands out yet.",
+      "one": "If anyone, {a}.",
+      "two": "{a}, and {b} close behind."
+    },
+    "sightings": {
+      "none": "I've seen nothing worth mentioning today.",
+      "some": "I saw {list}."
+    },
+    "seedDoubt": {
+      "detective": {
+        "any": [
+          "{Target}. Noted. I'll check that against what I saw.",
+          "Interesting. If it's true, it'll show. If it isn't, that tells me something too."
+        ],
+        "cold": ["You seem very keen to talk about {target}. I'll check that. Carefully."]
+      },
+      "sheep": {
+        "any": [
+          "Oh no. {Target}? I had a feeling... I'll tell the others.",
+          "Really? Everyone said {target} was nice. But you'd know."
+        ],
+        "cold": ["Why are you telling me this? ...Alright. {Target}."]
+      },
+      "loyalist": {
+        "any": [
+          "If you say so, I'll keep an eye on {target}.",
+          "{Target}, eh. I'll remember that at the table."
+        ],
+        "cold": ["I don't take sides on your say-so. But I'll watch {target}."]
+      },
+      "grudge": {
+        "any": [
+          "{Target}. Good. I never liked how they looked at me.",
+          "You're not the first to say it about {target}."
+        ],
+        "cold": ["Funny, people keep pointing fingers around here. Including you."]
+      },
+      "paranoid": {
+        "any": [
+          "{Target}... yes. They're always smiling. Why are they always smiling?",
+          "I knew it. I knew it was {target}. Or you. One of you."
+        ],
+        "cold": ["Or it's you, trying to make me look at {target}. I'll watch you both."]
+      }
+    },
+    "ally": {
+      "detective": {
+        "any": ["I don't do alliances. But I'll listen, if you've got facts."],
+        "cold": ["No. I'm not done looking at you."]
+      },
+      "sheep": {
+        "any": ["Yes! Thank you. I hate being on my own at that table."],
+        "cold": ["I... don't think the others would like that."]
+      },
+      "loyalist": {
+        "any": ["Then we stand together. I'll say so at the table, whatever comes."],
+        "cold": ["Earn it first."]
+      },
+      "grudge": {
+        "any": ["Fine. Just don't ever point at me."],
+        "cold": ["After what's been said about me? You'll have to do better."]
+      },
+      "paranoid": {
+        "any": ["Why are you so keen to be my friend? What do you want?"],
+        "cold": ["Stay back. Friends are how they get you."]
+      }
+    },
+    "bribe": {
+      "detective": {
+        "any": ["I'll pretend I didn't see that. Once."]
+      },
+      "sheep": {
+        "any": ["I... shouldn't. But alright. I won't say your name."]
+      },
+      "loyalist": {
+        "any": ["Put it away. You don't need to buy me."]
+      },
+      "grudge": {
+        "any": ["Hm. That's more respect than I usually get."]
+      },
+      "paranoid": {
+        "any": ["What's this for? What do you know?"]
+      }
+    }
+  },
+  "narration": {
+    "open": [
+      "The candles are lit. One by one the Faithfuls take their seats, and nobody meets your eye.",
+      "Wax pools on the table. Outside, the house settles; inside, six chairs scrape and the talking stops.",
+      "The fire has burned low. Someone closes the doors, and the Round Table begins.",
+      "A draught bends every flame toward the empty chair. The Faithfuls look at each other, then at you."
+    ],
+    "silence": [
+      "An uneasy silence. Nobody wants to go first.",
+      "Only the candles move. Everyone waits for someone else to speak.",
+      "A long pause. Glances cross the table and find nothing to hold on to."
+    ],
+    "vote": [
+      "Pens scratch. Slates turn face down. One by one the names are shown.",
+      "The room holds its breath as the slates are turned."
+    ]
   }
 }

@@ -1,5 +1,6 @@
-/** Placeholder portraits: a coloured disc with an initial. Real portraits arrive in M6. */
-import { ARCHETYPE_COLOUR, PLAYER_COLOUR, cssColour } from '../app/palette';
+/** Portraits: a head-and-shoulders bust drawn as inline SVG from the character's look (M6). */
+import { shapesToSvg } from '../app/art/draw';
+import { BUST, bust, lookOf } from '../app/art/looks';
 import { PLAYER_ID, type GameState, type Id } from '../sim';
 
 export type Attitude = 'warm' | 'neutral' | 'cold';
@@ -16,11 +17,9 @@ export function portrait(s: GameState, id: Id, opts: { showAttitude?: boolean } 
   el.dataset.id = id;
   const npc = s.npcs[id];
   const isPlayer = id === PLAYER_ID;
-  const colour = isPlayer ? PLAYER_COLOUR : npc ? ARCHETYPE_COLOUR[npc.archetype] : 0x888888;
   const face = document.createElement('div');
   face.className = 'face';
-  face.style.background = cssColour(colour);
-  face.textContent = isPlayer ? 'You' : (npc?.name.charAt(0) ?? '?');
+  face.innerHTML = shapesToSvg(bust(lookOf(id)), BUST.w, BUST.h);
   el.appendChild(face);
 
   const name = document.createElement('div');

@@ -25,7 +25,7 @@ Write down the time and what happened at each of these:
 | Opens the title screen | Did they read *How to play*? |
 | First room change | Did they notice it cost an action? |
 | First time they press E | |
-| First talk to an NPC | |
+| First talk to an NPC | Did they read the reply in the bottom box? Keep talking or leave? |
 | First use of Shift (sneak or lie) | Which one? |
 | First evidence pickup / plant | |
 | First time an NPC's name turns red (glance) | Did they notice? Comment? |

@@ -14,6 +14,8 @@ const KINDS: SpeechKind[] = [
   'alibiConfirmed',
   'alibiDisproved',
   'quietNoted',
+  'lieRetracted',
+  'lieStoodBy',
 ];
 const SPEAKERS: Record<Archetype, string> = {
   detective: 'marcus',
@@ -102,5 +104,46 @@ describe('dialogue', () => {
       if (m) m.suspicion[PLAYER_ID] = 90;
     });
     expect(greet(warm, 'marcus')).not.toBe(greet(cold, 'marcus'));
+  });
+});
+
+describe('replies', () => {
+  it('answers a chat with who they suspect and what they saw', async () => {
+    const { reply } = await import('../../src/sim');
+    const { newGame, pinSchedule, play, tweak } = await import('./helpers');
+    const s = tweak(newGame(), (d) => {
+      pinSchedule(d, 'marcus', 'hall');
+      pinSchedule(d, 'theo', 'hall');
+      d.npcs.marcus!.suspicion.theo = 60;
+    });
+    const after = play(s, { type: 'chat', npc: 'marcus' });
+    const text = reply(after, { type: 'chat', npc: 'marcus' });
+    expect(text).toContain('Theo');
+    expect(after.log.at(-1)?.text).toMatch(/^Marcus suspects Theo/);
+  });
+
+  it('names the target when doubt is seeded, and turns cold when they distrust you', async () => {
+    const { reply } = await import('../../src/sim');
+    const { newGame, pinSchedule, play, tweak } = await import('./helpers');
+    const s = tweak(newGame(), (d) => pinSchedule(d, 'priya', 'hall'));
+    const cmd = { type: 'seedDoubt', npc: 'priya', target: 'theo', isLie: false } as const;
+    expect(reply(play(s, cmd), cmd)).toContain('Theo');
+    const cold = tweak(s, (d) => {
+      d.npcs.priya!.suspicion.player = 80;
+    });
+    expect(reply(play(cold, cmd), cmd)).toContain('Why are you telling me this');
+    expect(reply(play(s, { type: 'ally', npc: 'priya' }), { type: 'ally', npc: 'priya' })).not.toBe('');
+    expect(reply(s, { type: 'endDay' })).toBe('');
+  });
+});
+
+describe('narration', () => {
+  it('sets the scene with a line that varies by day', async () => {
+    const { narrate } = await import('../../src/sim');
+    const { newGame } = await import('./helpers');
+    const s = newGame();
+    expect(narrate(s, 'open').length).toBeGreaterThan(20);
+    expect(narrate(s, 'silence').length).toBeGreaterThan(10);
+    expect(narrate(s, 'vote').length).toBeGreaterThan(10);
   });
 });

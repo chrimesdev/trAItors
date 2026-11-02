@@ -4,14 +4,17 @@
  * alibi), your vote, then the reveal: reactions, votes landing, the banishment,
  * and the trust web redrawing.
  */
+import { audio } from '../app/audio';
 import type { GameStore } from '../app/store';
 import {
   PLAYER_ID,
+  narrate,
   roomsPlayerVisitedToday,
   roundTableSpeeches,
   speak,
   type GameState,
   type Id,
+  type LieAnswer,
   type PlayerStatement,
 } from '../sim';
 import { choiceIndexFromKey, isAdvanceKey, renderChoices, type Choice } from './choices';
@@ -27,6 +30,7 @@ interface Line {
 
 type Step =
   | 'speeches'
+  | 'answer'
   | 'statement'
   | 'accuseTarget'
   | 'defendTarget'
@@ -64,13 +68,14 @@ export function mountRoundTable(overlay: HTMLElement, store: GameStore, onClose:
   el.innerHTML = `
     <h2 class="screen-title"></h2>
     <div class="ring"></div>
-    <div class="speech"><div class="speaker"></div><div class="text"></div></div>
+    <div class="speech"><div class="speech-face"></div><div class="speech-body"><div class="speaker"></div><div class="text"></div></div></div>
     <div class="controls"></div>
   `;
   overlay.appendChild(el);
   const title = el.querySelector('.screen-title') as HTMLElement;
   const ring = el.querySelector('.ring') as HTMLElement;
   const speakerEl = el.querySelector('.speaker') as HTMLElement;
+  const faceEl = el.querySelector('.speech-face') as HTMLElement;
   const textEl = el.querySelector('.text') as HTMLElement;
   const controls = el.querySelector('.controls') as HTMLElement;
   const web = createTrustWeb();
@@ -83,6 +88,8 @@ export function mountRoundTable(overlay: HTMLElement, store: GameStore, onClose:
   let typing: number | null = null;
   let typedFull = true;
   let statement: PlayerStatement = { kind: 'quiet' };
+  let answer: LieAnswer | undefined;
+  let caught: Id[] = []; // Detectives who called out a lie this table
   let view: GameState | null = null; // the state the ring is showing
   let choices: Choice[] = [];
   let voteTimer: number | null = null;
@@ -91,6 +98,18 @@ export function mountRoundTable(overlay: HTMLElement, store: GameStore, onClose:
 
   const buildRing = (s: GameState): void => {
     ring.innerHTML = '';
+    const candles = document.createElement('div');
+    candles.className = 'candles';
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2;
+      const c = document.createElement('span');
+      c.className = 'candle';
+      c.style.left = `${50 + Math.cos(a) * 21}%`;
+      c.style.top = `${50 + Math.sin(a) * 22}%`;
+      c.style.setProperty('--d', `${(i * 0.37) % 1.3}s`);
+      candles.appendChild(c);
+    }
+    ring.appendChild(candles);
     ring.appendChild(web);
     web.innerHTML = '';
     const ids = [
@@ -130,10 +149,18 @@ export function mountRoundTable(overlay: HTMLElement, store: GameStore, onClose:
     typing = null;
   };
 
+  const showFace = (id: Id | null): void => {
+    faceEl.innerHTML = '';
+    faceEl.classList.toggle('narrator', !id);
+    if (id) faceEl.appendChild(portrait(view as GameState, id));
+  };
+
   const showLine = (line: Line): void => {
     stopTyping();
     const s = view as GameState;
     speakerEl.textContent = line.speaker ? (line.speaker === PLAYER_ID ? 'You' : who(s, line.speaker)) : '';
+    el.classList.toggle('narrating', !line.speaker);
+    showFace(line.speaker);
     highlight(line.speaker);
     textEl.textContent = '';
     typedFull = false;
@@ -161,7 +188,7 @@ export function mountRoundTable(overlay: HTMLElement, store: GameStore, onClose:
     lineIndex++;
     const line = lines[lineIndex];
     if (line) return showLine(line);
-    if (step === 'speeches') goto('statement');
+    if (step === 'speeches') goto(caught.length && !answer ? 'answer' : 'statement');
     else if (step === 'reactions') goto('votes');
   };
 
@@ -184,8 +211,32 @@ export function mountRoundTable(overlay: HTMLElement, store: GameStore, onClose:
         lineIndex = 0;
         showLine(lines[0] as Line);
         break;
+      case 'answer': {
+        highlight(PLAYER_ID);
+        showFace(PLAYER_ID);
+        el.classList.remove('narrating');
+        speakerEl.textContent = 'Your answer';
+        const names = caught.map((id) => who(s, id)).join(' and ');
+        textEl.textContent = `${names} ${caught.length === 1 ? 'has' : 'have'} called out something you said today. The table waits.`;
+        setControls(
+          'Hold <kbd>Shift</kbd> to lie at the table later; this one is about what you already said.',
+          [
+            {
+              label: '“I must have been mistaken.” · half the damage, but the story dies',
+              onPick: () => ((answer = 'retract'), goto('statement')),
+            },
+            {
+              label: '“I know what I saw.” · full damage, the rumour stands',
+              onPick: () => ((answer = 'standBy'), goto('statement')),
+            },
+          ],
+        );
+        break;
+      }
       case 'statement':
         highlight(PLAYER_ID);
+        showFace(PLAYER_ID);
+        el.classList.remove('narrating');
         speakerEl.textContent = 'Your turn';
         textEl.textContent = 'The table turns to you.';
         setControls('', [
@@ -258,13 +309,34 @@ export function mountRoundTable(overlay: HTMLElement, store: GameStore, onClose:
 
   const resolve = (vote: Id): void => {
     const before = store.state;
-    if (!store.dispatch({ type: 'resolveRoundTable', playerVote: vote, statement })) return;
+    if (
+      !store.dispatch({
+        type: 'resolveRoundTable',
+        playerVote: vote,
+        statement,
+        ...(answer ? { answer } : {}),
+      })
+    )
+      return;
     const after = store.state;
     view = after;
     const record = after.lastTable;
     lines = [
+      ...(answer
+        ? [
+            {
+              speaker: PLAYER_ID,
+              text: answer === 'retract' ? '“I must have been mistaken about that.”' : '“I know what I saw.”',
+            },
+          ]
+        : []),
+      ...(record?.reactions ?? [])
+        .filter((r) => r.kind === 'lieRetracted' || r.kind === 'lieStoodBy')
+        .map((r) => ({ speaker: r.speaker, text: speak(after, r) })),
       { speaker: PLAYER_ID, text: describeStatement(before, statement) },
-      ...(record?.reactions ?? []).map((r) => ({ speaker: r.speaker, text: speak(after, r) })),
+      ...(record?.reactions ?? [])
+        .filter((r) => r.kind !== 'lieRetracted' && r.kind !== 'lieStoodBy')
+        .map((r) => ({ speaker: r.speaker, text: speak(after, r) })),
     ];
     goto('reactions');
   };
@@ -273,9 +345,12 @@ export function mountRoundTable(overlay: HTMLElement, store: GameStore, onClose:
     const s = view as GameState;
     const votes = Object.entries(s.lastTable?.votes ?? {});
     speakerEl.textContent = 'The vote';
-    textEl.textContent = '';
+    textEl.textContent = narrate(s, 'vote');
+    showFace(null);
+    el.classList.add('narrating');
     highlight(null);
     setControls('', []);
+    audio.play('drumroll');
     let i = 0;
     const tick = (): void => {
       const entry = votes[i];
@@ -290,6 +365,7 @@ export function mountRoundTable(overlay: HTMLElement, store: GameStore, onClose:
       chip.textContent = voter === PLAYER_ID ? 'You' : who(s, voter).charAt(0);
       chip.title = `${voter === PLAYER_ID ? 'You' : who(s, voter)} voted for ${who(s, target)}`;
       seatEl(target)?.querySelector('.chips')?.appendChild(chip);
+      audio.play('tick');
       textEl.textContent = `${voter === PLAYER_ID ? 'You vote' : `${who(s, voter)} votes`} for ${who(s, target)}.`;
       i++;
       voteTimer = window.setTimeout(tick, VOTE_MS);
@@ -303,6 +379,9 @@ export function mountRoundTable(overlay: HTMLElement, store: GameStore, onClose:
     if (!banished) return close();
     seatEl(banished)?.classList.add('banished');
     highlight(banished);
+    showFace(banished);
+    el.classList.remove('narrating');
+    audio.play('banish');
     drawTrustWeb(web, s, seats);
     if (banished === PLAYER_ID) {
       speakerEl.textContent = 'Banished';
@@ -322,12 +401,17 @@ export function mountRoundTable(overlay: HTMLElement, store: GameStore, onClose:
     openDay = s.day;
     view = s;
     statement = { kind: 'quiet' };
+    answer = undefined;
     title.innerHTML = `The Round Table <span class="muted">· Day ${s.day}</span>`;
     buildRing(s);
     const speeches = roundTableSpeeches(s);
-    lines = speeches.length
-      ? speeches.map((sp) => ({ speaker: sp.speaker, text: speak(s, sp) }))
-      : [{ speaker: null, text: 'An uneasy silence. Nobody wants to go first.' }];
+    caught = [...new Set(speeches.filter((sp) => sp.kind === 'contradiction').map((sp) => sp.speaker))];
+    lines = [
+      { speaker: null, text: narrate(s, 'open') },
+      ...(speeches.length
+        ? speeches.map((sp) => ({ speaker: sp.speaker, text: speak(s, sp) }))
+        : [{ speaker: null, text: narrate(s, 'silence') }]),
+    ];
     el.hidden = false;
     goto('speeches');
   };
@@ -363,6 +447,9 @@ export function mountRoundTable(overlay: HTMLElement, store: GameStore, onClose:
       e.preventDefault();
       if (step === 'accuseTarget' || step === 'defendTarget' || step === 'alibiRoom' || step === 'vote') {
         goto('statement');
+      } else if (step === 'statement' && caught.length) {
+        answer = undefined;
+        goto('answer');
       }
       return;
     }
