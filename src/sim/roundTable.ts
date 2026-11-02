@@ -296,6 +296,7 @@ export function resolveRoundTable(s: GameState, playerVote: Id, statement: Playe
   const banished = chooseBanished(s, votes);
   s.lastVote = { day: s.day, votes, banished };
   s.lastTable = { day: s.day, speeches, statement, reactions, votes, banished };
+  s.history.tables.push(structuredClone(s.lastTable));
   log(
     s,
     'Votes: ' +

@@ -91,6 +91,7 @@ export function createGame(seed: number, content: Content, balance: Balance = BA
     evidence,
     rumours: [],
     nextRumourId: 1,
+    history: { tables: [], murders: [] },
     log: [],
   };
   // First impressions: nobody starts the game suspecting everyone equally.

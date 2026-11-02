@@ -84,3 +84,19 @@ describe('Round Table record', () => {
     );
   });
 });
+
+describe('game history', () => {
+  it('records every Round Table and murder in order', async () => {
+    const { runBot } = await import('./helpers');
+    const { naiveBot } = await import('../../src/sim');
+    for (let seed = 1; seed <= 30; seed++) {
+      const s = runBot(seed, naiveBot);
+      expect(s.history.tables.map((t) => t.day)).toEqual(
+        Array.from({ length: s.history.tables.length }, (_, i) => i + 1),
+      );
+      expect(s.history.murders.length).toBeGreaterThanOrEqual(s.history.tables.length - 1);
+      expect(s.history.murders.every((m, i) => m.day === i + 1)).toBe(true);
+      if (s.outcome === 'lose') expect(s.history.tables.at(-1)?.banished).toBe('player');
+    }
+  });
+});

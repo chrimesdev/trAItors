@@ -207,6 +207,8 @@ export interface GameState {
   lastVote?: { day: number; votes: Record<Id, Id>; banished: Id };
   /** Everything that happened at the last Round Table, in order, for the UI to replay. */
   lastTable?: TableRecord;
+  /** Every Round Table and murder so far, for the end-of-game replay. */
+  history: { tables: TableRecord[]; murders: { day: number; victim: Id; room: Id }[] };
   lastMurder?: { day: number; victim: Id; room: Id };
   outcome?: 'win' | 'lose';
 }

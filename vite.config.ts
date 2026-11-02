@@ -1,8 +1,11 @@
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  // Relative base so the build works when itch.io serves it from a nested path.
+  // Relative base so the build works when itch.io or GitHub Pages serves it from a nested path.
   base: './',
+  define: {
+    BUILD_ID: JSON.stringify(process.env.GITHUB_SHA?.slice(0, 7) ?? 'dev'),
+  },
   build: {
     outDir: 'dist',
     assetsInlineLimit: 0,
@@ -15,5 +18,7 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],
     environment: 'node',
+    globals: false,
+    setupFiles: ['tests/setup.ts'],
   },
 });

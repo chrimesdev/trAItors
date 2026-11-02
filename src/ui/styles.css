@@ -392,3 +392,206 @@ kbd {
 .morning p {
   margin: 0 0 10px;
 }
+
+/* ------------------------------------------------------------------ M4 */
+
+.hud {
+  position: relative;
+}
+.menu-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font: inherit;
+  font-size: 11px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid rgba(143, 138, 163, 0.4);
+  padding: 1px 6px;
+  cursor: pointer;
+}
+.menu-button:hover {
+  color: var(--paper);
+  border-color: var(--accent);
+}
+
+/* Title covers the whole canvas, sidebar included. */
+.title-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(ellipse at 50% 35%, rgba(179, 18, 46, 0.25), transparent 60%),
+    radial-gradient(ellipse at center, #1a1a2e, #07070f);
+  overflow: auto;
+}
+.title-inner {
+  width: min(560px, 90%);
+  text-align: center;
+}
+.logo {
+  margin: 0;
+  font-size: clamp(42px, 7vw, 84px);
+  letter-spacing: 1px;
+  line-height: 1;
+}
+.logo .ai {
+  text-shadow: 0 0 24px rgba(255, 77, 109, 0.6);
+}
+.tagline {
+  margin: 8px 0 20px;
+  color: var(--muted);
+  font-size: clamp(13px, 1.4vw, 16px);
+}
+.title-body {
+  text-align: left;
+}
+.title-foot {
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.help ul {
+  padding-left: 18px;
+}
+.help li {
+  margin-bottom: 4px;
+}
+.seed-form {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.seed-form input,
+.seed-form button {
+  font: inherit;
+  padding: 6px 8px;
+  background: var(--ink-2);
+  color: var(--paper);
+  border: 1px solid var(--muted);
+}
+.seed-form input {
+  flex: 1;
+}
+.seed-form button {
+  cursor: pointer;
+  border-color: var(--accent);
+}
+
+.pause {
+  z-index: 9;
+}
+.pause .help {
+  max-height: 300px;
+  overflow: auto;
+}
+textarea.report {
+  width: 100%;
+  height: 120px;
+  box-sizing: border-box;
+  margin-top: 8px;
+  font:
+    11px ui-monospace,
+    monospace;
+  background: #0e0e1a;
+  color: var(--paper);
+  border: 1px solid var(--muted);
+}
+
+/* End screen */
+.end-screen {
+  overflow: auto;
+  display: block;
+}
+.end-cols {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 18px;
+  margin: 6px 0 10px;
+}
+.replay {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.replay li {
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(143, 138, 163, 0.18);
+}
+.replay .day {
+  display: inline-block;
+  min-width: 52px;
+  color: var(--gold);
+  font-weight: 600;
+}
+.votes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 4px 0 2px 52px;
+}
+.vote {
+  font-size: 11px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: var(--ink-2);
+  color: var(--muted);
+}
+.vote.at-you {
+  background: rgba(255, 77, 109, 0.25);
+  color: var(--paper);
+}
+.murder {
+  margin-left: 52px;
+  color: var(--muted);
+  font-style: italic;
+}
+.reveal-col h4 {
+  margin: 0 0 6px;
+}
+.reveal-col h4 + .bar-row {
+  margin-top: 0;
+}
+.reveal-col ul {
+  padding-left: 18px;
+  margin: 0;
+}
+.bar-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 26px 72px;
+  gap: 6px;
+  align-items: center;
+  margin: 3px 0;
+}
+.bar-row.gone .who {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+.bar {
+  height: 8px;
+  background: var(--ink-2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--accent));
+}
+.bar-row .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.bar-row .seen {
+  color: var(--muted);
+  font-size: 11px;
+}
+.end-actions .choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+.reveal-col h4:not(:first-child) {
+  margin-top: 12px;
+}

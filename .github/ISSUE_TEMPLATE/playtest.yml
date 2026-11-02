@@ -1,0 +1,76 @@
+name: Playtest feedback
+description: Tell us how your game of TrAItors went.
+title: 'Playtest: '
+labels: [playtest]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for playing! Short answers are perfect. If you came here from the game's
+        "Send playtest feedback" button, your run summary is already filled in below.
+
+  - type: dropdown
+    id: goal
+    attributes:
+      label: Before your first Round Table, did you know what you were trying to do?
+      options:
+        - Yes, clearly
+        - Roughly
+        - Not really
+        - No idea
+    validations:
+      required: true
+
+  - type: dropdown
+    id: why
+    attributes:
+      label: If you were banished, did you understand why?
+      options:
+        - I wasn't banished
+        - Yes, I could name the reason
+        - Sort of
+        - No, it felt random
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason
+    attributes:
+      label: In your own words, why do you think they suspected you (or didn't)?
+
+  - type: dropdown
+    id: shift
+    attributes:
+      label: Did you use Shift to sneak or to lie?
+      options:
+        - Both
+        - Only to sneak
+        - Only to lie
+        - Neither
+        - I didn't know I could
+
+  - type: textarea
+    id: confusing
+    attributes:
+      label: What was confusing or annoying?
+
+  - type: textarea
+    id: best
+    attributes:
+      label: What was the best moment?
+
+  - type: dropdown
+    id: again
+    attributes:
+      label: Would you play another round?
+      options:
+        - Yes, straight away
+        - Maybe later
+        - Probably not
+
+  - type: textarea
+    id: report
+    attributes:
+      label: Run summary (filled in by the game)
+      description: Or paste from Menu → Copy run report.
+      render: text

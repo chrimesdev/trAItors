@@ -12,6 +12,7 @@ export function murder(s: GameState, victimId: Id, room: Id): void {
   const victim = getNpc(s, victimId);
   victim.alive = false;
   s.lastMurder = { day: s.day, victim: victimId, room };
+  s.history.murders.push({ ...s.lastMurder });
   log(s, `Under cover of the night shift, you murder ${victim.name} in the ${roomName(s, room)}.`);
 
   revealBody(s, victimId, room);

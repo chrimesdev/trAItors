@@ -10,9 +10,10 @@ You are the only Traitor in a mansion of six AI Faithfuls. By day you roam the r
 
 ## Play
 
-- Browser build on itch.io: _coming soon_
+- **Play in your browser:** https://chrimesdev.github.io/traitors/ (latest `main`; itch.io page coming in M6)
 - Controls: WASD / arrows to move, hold **Shift** to sneak, **E** to act, **1–9** to pick an option
-- Add `?seed=123` to the URL to replay a specific game
+- Add `?seed=123` to the URL to replay a specific game; your game saves automatically and **Continue** picks it up
+- Playtesting? See [`docs/playtest.md`](docs/playtest.md)
 
 ## Develop
 
@@ -24,6 +25,7 @@ npm run dev        # http://localhost:5173
 npm test           # simulation unit tests (Vitest)
 npm run check      # typecheck + lint + format + tests (what CI runs)
 npm run sim -- --seed 42   # headless simulation run
+npm run replay -- report.txt  # replay a playtester's run report
 npm run build      # static build in dist/ for itch.io
 ```
 
@@ -50,7 +52,7 @@ See [`docs/implementation-plan.pdf`](docs/implementation-plan.pdf) for the full 
 | M1        | 3–6 Nov   | Simulation core: sightings, evidence, votes, night ✅ |
 | M2        | 7–10 Nov  | Mansion scene: tilemap, NPC schedules, sight cones ✅ |
 | M3        | 11–16 Nov | Dialogue, rumours, Round Table UI, trust web ✅       |
-| M4        | 17–19 Nov | Full loop, win/lose, first playtest                   |
+| M4        | 17–19 Nov | Full loop, win/lose ✅ · first playtest pending       |
 | M5        | 20–23 Nov | Balance and feel                                      |
 | M6        | 24–27 Nov | Art, audio, itch.io page                              |
 | M7        | 28–29 Nov | Ship (hard deadline 1 Dec 2026, 13:37 PST / 21:37 UK) |

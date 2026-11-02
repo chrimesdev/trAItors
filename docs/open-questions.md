@@ -49,6 +49,14 @@ Decisions deferred to a later milestone. Each has the evidence so far and the op
 
 **Evidence (M3):** with Shift held, the doubt menu lists all ten rooms as lies, which runs past the 1–9 keys. Fine for now; may want to limit to adjacent rooms or the target's own wing once the art pass changes the layout.
 
+### 7. Doing nothing wins
+
+**Evidence (M4, seed 42):** wait out each day without moving, stay quiet at every Round Table, vote for whoever is listed first, murder whoever is listed first → **won on day 2**. Final suspicion of the player was 5–12 from everyone; Theo never saw the player at all.
+
+**Why:** suspicion only rises from being seen somewhere damning, evidence, lies and accusations. A player who never acts gives the Faithfuls nothing, so they turn on each other. Closely tied to #1 (short games) and #2 (high win rate).
+
+**Options:** suspicion of whoever stays quiet ("they never say anything…"), the Paranoid targeting low-profile players, a minimum number of actions per day, or NPCs noticing who benefits from each banishment. Probably needs a fix before the playtest results mean much. Worth checking with `npm run sim` using an idle bot.
+
 ## Decided
 
 _Nothing yet._
