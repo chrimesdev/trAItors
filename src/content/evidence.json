@@ -1,0 +1,8 @@
+[
+  { "id": "tornLetter", "name": "Torn letter", "belongsTo": "dalton", "room": "study" },
+  { "id": "cellarKey", "name": "Cellar key", "belongsTo": "theo", "room": "cellar" },
+  { "id": "bloodiedCloth", "name": "Bloodied cloth", "belongsTo": null, "room": "kitchen" },
+  { "id": "photograph", "name": "Photograph", "belongsTo": "imogen", "room": "bedroomCorridor" },
+  { "id": "poisonVial", "name": "Poison vial", "belongsTo": "rosa", "room": "conservatory" },
+  { "id": "gloves", "name": "Gloves", "belongsTo": "priya", "room": "dining" }
+]

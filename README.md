@@ -46,7 +46,7 @@ See [`docs/implementation-plan.pdf`](docs/implementation-plan.pdf) for the full 
 | Milestone | Dates     | Goal                                                  |
 | --------- | --------- | ----------------------------------------------------- |
 | M0        | 2 Nov     | Tooling, CI, placeholder scene ✅                     |
-| M1        | 3–6 Nov   | Simulation core: sightings, evidence, votes, night    |
+| M1        | 3–6 Nov   | Simulation core: sightings, evidence, votes, night ✅ |
 | M2        | 7–10 Nov  | Mansion scene: tilemap, NPC schedules, sight cones    |
 | M3        | 11–16 Nov | Dialogue, rumours, Round Table UI, trust web          |
 | M4        | 17–19 Nov | Full loop, win/lose, first playtest                   |

@@ -1,0 +1,39 @@
+[
+  {
+    "id": "marcus",
+    "name": "Marcus",
+    "archetype": "detective",
+    "schedule": ["library", "study", "library", "hall", "dining", "lounge"]
+  },
+  {
+    "id": "priya",
+    "name": "Priya",
+    "archetype": "sheep",
+    "schedule": ["kitchen", "dining", "hall", "lounge", "conservatory", "lounge"]
+  },
+  {
+    "id": "dalton",
+    "name": "Dalton",
+    "archetype": "loyalist",
+    "schedule": ["hall", "lounge", "conservatory", "lounge", "hall", "dining"]
+  },
+  {
+    "id": "imogen",
+    "name": "Imogen",
+    "archetype": "grudge",
+    "schedule": ["bedroomCorridor", "stairsLanding", "hall", "library", "study", "library"]
+  },
+  {
+    "id": "theo",
+    "name": "Theo",
+    "archetype": "paranoid",
+    "schedule": ["cellar", "kitchen", "dining", "kitchen", "cellar", "kitchen"]
+  },
+  {
+    "id": "rosa",
+    "name": "Rosa",
+    "archetype": "detective",
+    "weakDetective": true,
+    "schedule": ["conservatory", "lounge", "hall", "stairsLanding", "bedroomCorridor", "stairsLanding"]
+  }
+]

@@ -1,0 +1,12 @@
+[
+  { "id": "hall", "name": "Great Hall", "adjacent": ["lounge", "dining", "library", "stairsLanding"] },
+  { "id": "lounge", "name": "Lounge", "adjacent": ["hall", "conservatory"] },
+  { "id": "dining", "name": "Dining Room", "adjacent": ["hall", "kitchen"] },
+  { "id": "kitchen", "name": "Kitchen", "adjacent": ["dining", "cellar"] },
+  { "id": "cellar", "name": "Wine Cellar", "adjacent": ["kitchen"] },
+  { "id": "library", "name": "Library", "adjacent": ["hall", "study"] },
+  { "id": "study", "name": "Study", "adjacent": ["library"] },
+  { "id": "conservatory", "name": "Conservatory", "adjacent": ["lounge"] },
+  { "id": "stairsLanding", "name": "Stairs Landing", "adjacent": ["hall", "bedroomCorridor"] },
+  { "id": "bedroomCorridor", "name": "Bedroom Corridor", "adjacent": ["stairsLanding"] }
+]
