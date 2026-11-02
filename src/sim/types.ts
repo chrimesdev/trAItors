@@ -71,6 +71,8 @@ export interface Npc {
   /** -1..1 toward each other character. Drives influence and the trust web. */
   trusts: Record<Id, number>;
   bribedDay?: number;
+  /** Last tick a sight-cone check against the player was rolled (once per tick). */
+  lastSpotCheck?: { day: number; tick: number };
   /** Day on which this NPC will mention a bribe at the Round Table. */
   exposeBribeDay?: number;
 }
@@ -190,9 +192,15 @@ export interface GameState {
 }
 
 export type Command =
-  | { type: 'move'; to: Id; sneaking: boolean }
-  | { type: 'pickUp'; evidence: Id }
-  | { type: 'plant'; evidence: Id; room: Id }
+  /**
+   * visibleTo (optional): NPCs whose sight cone covers the player at that moment.
+   * The presentation layer supplies it; when omitted (bots, tests) everyone in the room can see.
+   */
+  | { type: 'move'; to: Id; sneaking: boolean; visibleTo?: Id[] }
+  | { type: 'pickUp'; evidence: Id; visibleTo?: Id[] }
+  | { type: 'plant'; evidence: Id; room: Id; visibleTo?: Id[] }
+  /** Free action: the player stepped into an NPC's sight cone. */
+  | { type: 'spotted'; npc: Id; sneaking: boolean }
   | { type: 'report'; evidence: Id }
   | { type: 'chat'; npc: Id }
   | { type: 'seedDoubt'; npc: Id; target: Id; room?: Id; isLie: boolean }

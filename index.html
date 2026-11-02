@@ -4,57 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TrAItors</title>
-    <style>
-      :root {
-        --ink: #1a1a2e;
-        --accent: #ff4d6d;
-        --paper: #f3f1ee;
-      }
-      html,
-      body {
-        margin: 0;
-        height: 100%;
-        background: #0e0e1a;
-        color: var(--paper);
-        font-family: system-ui, sans-serif;
-        overflow: hidden;
-      }
-      #app {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      #game {
-        width: 100%;
-        height: 100%;
-      }
-      /* DOM overlay for dialogue, trust web and Round Table UI (see src/ui). */
-      #overlay {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-      }
-      #overlay > * {
-        pointer-events: auto;
-      }
-      .hud {
-        position: absolute;
-        top: 12px;
-        left: 12px;
-        padding: 8px 12px;
-        background: rgba(26, 26, 46, 0.85);
-        border-left: 3px solid var(--accent);
-        font-size: 13px;
-        line-height: 1.5;
-        pointer-events: none;
-      }
-      .hud .ai {
-        color: var(--accent);
-      }
-    </style>
   </head>
   <body>
     <div id="app">

@@ -5,8 +5,8 @@
  * are just props waiting to be used. Provenance matters: whoever finds an item,
  * and who they saw near it, shapes who gets blamed.
  */
-import { sightingsOf } from './sightings';
-import { addSuspicion, aliveNpcs, isLiving, log, nameOf, npcRoom, npcsInRoom, roll, roomName } from './state';
+import { sightingsOf, watchers } from './sightings';
+import { addSuspicion, aliveNpcs, isLiving, log, nameOf, npcRoom, roll, roomName } from './state';
 import { PLAYER_ID, type Evidence, type GameState, type Id, type Npc } from './types';
 
 const OUT_OF_PLAY = 'destroyed';
@@ -17,19 +17,19 @@ export function getEvidence(s: GameState, id: Id): Evidence {
   return ev;
 }
 
-export function pickUp(s: GameState, id: Id): void {
+export function pickUp(s: GameState, id: Id, visibleTo?: Id[]): void {
   const ev = getEvidence(s, id);
   const room = s.player.room;
   ev.location = PLAYER_ID;
   s.player.inventory.push(id);
   log(s, `You pick up the ${ev.name} in the ${roomName(s, room)}.`);
-  for (const w of npcsInRoom(s, room)) {
+  for (const w of watchers(s, room, visibleTo)) {
     addSuspicion(s, w, PLAYER_ID, s.balance.evidence.witnessedPickUpPenalty);
     log(s, `${w.name} watches you pocket something.`);
   }
 }
 
-export function plant(s: GameState, id: Id, room: Id): void {
+export function plant(s: GameState, id: Id, room: Id, visibleTo?: Id[]): void {
   const ev = getEvidence(s, id);
   s.player.inventory = s.player.inventory.filter((x) => x !== id);
   ev.location = room;
@@ -37,7 +37,7 @@ export function plant(s: GameState, id: Id, room: Id): void {
   ev.plantedDay = s.day;
   log(s, `You plant the ${ev.name} in the ${roomName(s, room)}.`);
 
-  const witnesses = npcsInRoom(s, room);
+  const witnesses = watchers(s, room, visibleTo);
   if (witnesses.length === 0) return;
 
   // Caught in the act: the item is taken into custody and becomes evidence against you.

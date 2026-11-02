@@ -1,0 +1,181 @@
+:root {
+  --ink: #1a1a2e;
+  --ink-2: #24243c;
+  --accent: #ff4d6d;
+  --paper: #f3f1ee;
+  --muted: #8f8aa3;
+  --gold: #f5d76e;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: #0e0e1a;
+  color: var(--paper);
+  font-family: system-ui, sans-serif;
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Matches the Phaser canvas exactly (1200×528) so the overlay lines up with the map. */
+#app {
+  position: relative;
+  width: min(100vw, calc(100vh * 1200 / 528));
+  aspect-ratio: 1200 / 528;
+}
+
+#game {
+  width: 100%;
+  height: 100%;
+}
+
+#overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-size: clamp(10px, 1.05vw, 13px);
+  line-height: 1.45;
+}
+
+/* Right-hand 240px of the canvas: never covers the mansion. */
+.sidebar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 20%;
+  box-sizing: border-box;
+  padding: 1% 0.8% 1% 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#overlay .interactive {
+  pointer-events: auto;
+}
+
+.ai {
+  color: var(--accent);
+}
+
+kbd {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  padding: 0 4px;
+  border: 1px solid var(--muted);
+  border-radius: 3px;
+}
+
+.panel {
+  background: rgba(26, 26, 46, 0.94);
+  border-left: 3px solid var(--accent);
+  padding: 10px 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* HUD: top-left */
+.hud {
+  flex: none;
+}
+.hud .row {
+  color: var(--muted);
+}
+.hud .row b {
+  color: var(--paper);
+  font-weight: 600;
+}
+.hud .pips {
+  letter-spacing: 2px;
+  color: var(--gold);
+}
+.hud .sneak-on {
+  color: var(--accent);
+}
+
+/* Event feed: bottom-left */
+.feed {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.feed p {
+  margin: 0;
+  color: var(--muted);
+}
+.feed p.new {
+  color: var(--paper);
+}
+
+/* Chat reveal card: top-right */
+.reveal {
+  flex: none;
+}
+.reveal h4 {
+  margin: 0 0 4px;
+}
+.reveal .attitude-warm {
+  color: #7fd18b;
+}
+.reveal .attitude-neutral {
+  color: var(--gold);
+}
+.reveal .attitude-cold {
+  color: var(--accent);
+}
+
+/* Centred modal panels: interaction menu, Round Table, night, end */
+.modal {
+  position: absolute;
+  left: 40%; /* centre of the 960px mansion, not the whole canvas */
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(520px, 76%);
+  max-height: calc(100% - 32px);
+  overflow: auto;
+}
+.modal h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+.modal .hint {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0 0 8px;
+}
+.modal ul {
+  margin: 0 0 10px;
+  padding-left: 18px;
+}
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.choices button {
+  text-align: left;
+  font: inherit;
+  color: var(--paper);
+  background: var(--ink-2);
+  border: 1px solid transparent;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+.choices button:hover,
+.choices button:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+.choices button .num {
+  color: var(--gold);
+  margin-right: 6px;
+}

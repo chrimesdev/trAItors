@@ -11,7 +11,8 @@ You are the only Traitor in a mansion of six AI Faithfuls. By day you roam the r
 ## Play
 
 - Browser build on itch.io: _coming soon_
-- Controls: WASD / arrows to move, hold **Shift** to sneak
+- Controls: WASD / arrows to move, hold **Shift** to sneak, **E** to act, **1–9** to pick an option
+- Add `?seed=123` to the URL to replay a specific game
 
 ## Develop
 
@@ -47,7 +48,7 @@ See [`docs/implementation-plan.pdf`](docs/implementation-plan.pdf) for the full 
 | --------- | --------- | ----------------------------------------------------- |
 | M0        | 2 Nov     | Tooling, CI, placeholder scene ✅                     |
 | M1        | 3–6 Nov   | Simulation core: sightings, evidence, votes, night ✅ |
-| M2        | 7–10 Nov  | Mansion scene: tilemap, NPC schedules, sight cones    |
+| M2        | 7–10 Nov  | Mansion scene: tilemap, NPC schedules, sight cones ✅ |
 | M3        | 11–16 Nov | Dialogue, rumours, Round Table UI, trust web          |
 | M4        | 17–19 Nov | Full loop, win/lose, first playtest                   |
 | M5        | 20–23 Nov | Balance and feel                                      |

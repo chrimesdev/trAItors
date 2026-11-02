@@ -66,16 +66,30 @@ export function sneakDetectChance(s: GameState, npc: Npc): number {
   return s.balance.detection.sneakingDetect[npc.archetype];
 }
 
-/** The player has just entered `room`. NPCs already there may see them. */
-export function playerArrives(s: GameState, room: Id, sneaking: boolean): Id[] {
-  const seenBy: Id[] = [];
-  for (const n of npcsInRoom(s, room)) {
-    if (!sneaking || roll(s, sneakDetectChance(s, n))) {
-      recordSighting(s, n.id, PLAYER_ID, room);
-      seenBy.push(n.id);
-    }
-  }
-  return seenBy;
+/** NPCs in `room` who can see the player: everyone, or only those in `visibleTo` when cones are in play. */
+export function watchers(s: GameState, room: Id, visibleTo?: Id[]): Npc[] {
+  const here = npcsInRoom(s, room);
+  return visibleTo ? here.filter((n) => visibleTo.includes(n.id)) : here;
+}
+
+/**
+ * One detection check of the player by `npc`: always seen when walking, a roll when sneaking.
+ * Each NPC gets at most one check per tick, so lingering in a cone can't be re-rolled until it succeeds.
+ */
+export function checkPlayer(s: GameState, npc: Npc, sneaking: boolean): boolean {
+  const last = npc.lastSpotCheck;
+  if (last && last.day === s.day && last.tick === s.tick) return false;
+  npc.lastSpotCheck = { day: s.day, tick: s.tick };
+  if (sneaking && !roll(s, sneakDetectChance(s, npc))) return false;
+  recordSighting(s, npc.id, PLAYER_ID, s.player.room);
+  return true;
+}
+
+/** The player has just entered `room`. NPCs who can see the doorway may notice them. */
+export function playerArrives(s: GameState, room: Id, sneaking: boolean, visibleTo?: Id[]): Id[] {
+  return watchers(s, room, visibleTo)
+    .filter((n) => checkPlayer(s, n, sneaking))
+    .map((n) => n.id);
 }
 
 /** An NPC has just entered its current room: it sees everyone there and they see it. */

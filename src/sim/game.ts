@@ -11,7 +11,7 @@ import { murder, startDay } from './night';
 import { createRng } from './rng';
 import { resolveRoundTable } from './roundTable';
 import { rumourPass, seedDoubt } from './rumours';
-import { npcArrives, playerArrives } from './sightings';
+import { checkPlayer, npcArrives, playerArrives } from './sightings';
 import { aliveNpcs, log, nameOf, npcRoom, rollFloat, roomName } from './state';
 import { ally, bribe, chat } from './verbs';
 import { isAdjacent, roomsVisitedToday } from './world';
@@ -117,7 +117,18 @@ function npcHere(s: GameState, id: Id): string | null {
 /** Returns why a command is not allowed right now, or null if it is. */
 export function validateCommand(s: GameState, c: Command): string | null {
   if (s.phase === 'ended') return 'the game is over';
-  const dayOnly = ['move', 'pickUp', 'plant', 'report', 'chat', 'seedDoubt', 'ally', 'bribe', 'endDay'];
+  const dayOnly = [
+    'move',
+    'pickUp',
+    'plant',
+    'report',
+    'chat',
+    'seedDoubt',
+    'ally',
+    'bribe',
+    'endDay',
+    'spotted',
+  ];
   if (dayOnly.includes(c.type) && s.phase !== 'day') return `not allowed during ${s.phase}`;
   if (c.type === 'resolveRoundTable' && s.phase !== 'roundTable') return 'no Round Table in progress';
   if (c.type === 'murder' && s.phase !== 'night') return 'murders happen at night';
@@ -159,6 +170,8 @@ export function validateCommand(s: GameState, c: Command): string | null {
     }
     case 'endDay':
       return null;
+    case 'spotted':
+      return npcHere(s, c.npc);
     case 'resolveRoundTable': {
       const t = s.npcs[c.playerVote];
       if (!t || !t.alive) return `you must vote for a living Faithful`;
@@ -205,7 +218,7 @@ export function applyCommand(state: GameState, c: Command): GameState {
     case 'move': {
       s.player.room = c.to;
       s.player.trail.push({ day: s.day, tick: s.tick, room: c.to });
-      const seenBy = playerArrives(s, c.to, c.sneaking);
+      const seenBy = playerArrives(s, c.to, c.sneaking, c.visibleTo);
       log(
         s,
         `You ${c.sneaking ? 'creep' : 'walk'} into the ${roomName(s, c.to)}` +
@@ -217,11 +230,11 @@ export function applyCommand(state: GameState, c: Command): GameState {
       break;
     }
     case 'pickUp':
-      pickUp(s, c.evidence);
+      pickUp(s, c.evidence, c.visibleTo);
       endOfAction(s);
       break;
     case 'plant':
-      plant(s, c.evidence, c.room);
+      plant(s, c.evidence, c.room, c.visibleTo);
       endOfAction(s);
       break;
     case 'report':
@@ -244,6 +257,14 @@ export function applyCommand(state: GameState, c: Command): GameState {
       bribe(s, c.npc);
       endOfAction(s);
       break;
+    case 'spotted': {
+      // Free action: no tick passes.
+      const npc = s.npcs[c.npc];
+      if (npc && checkPlayer(s, npc, c.sneaking)) {
+        log(s, `${npc.name} spots you in the ${roomName(s, s.player.room)}.`);
+      }
+      break;
+    }
     case 'endDay':
       log(s, 'You wait for the day to pass.');
       while (s.phase === 'day') endOfAction(s);
