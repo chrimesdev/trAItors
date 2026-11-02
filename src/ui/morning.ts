@@ -51,13 +51,17 @@ export function mountMorning(overlay: HTMLElement): Morning {
           `Six Faithfuls share this house, and none of them know it’s you. Each day you have
            <b>${s.balance.day.actionBudget} actions</b>: every door you walk through and every
            conversation costs one. Hold <kbd>Shift</kbd> to sneak past their gaze, and to lie.
-           Plant evidence, seed doubt, and make sure it’s someone else they banish tonight.`,
+           Plant evidence, seed doubt, and make sure it’s someone else they banish tonight.
+           Survive until only one Faithful is left. And keep talking: the quiet ones get noticed.`,
         );
       } else if (s.lastMurder && s.lastMurder.day === s.day - 1) {
         show(
           `Day ${s.day}`,
           `${who(s, s.lastMurder.victim)} is found dead in the <b>${room(s, s.lastMurder.room)}</b>.
-           Anyone remembered near there yesterday is under suspicion.`,
+           Anyone remembered near there yesterday is under suspicion.` +
+            (s.lastMurder.lead
+              ? ` Everyone knows ${who(s, s.lastMurder.victim)} had been suspicious of <b>${who(s, s.lastMurder.lead)}</b>.`
+              : ''),
         );
       }
     },

@@ -130,6 +130,21 @@
           "No. I watched {target}. They were never in the {room}."
         ]
       }
+    },
+    "quietNoted": {
+      "paranoid": {
+        "any": [
+          "You've said nothing. Nothing at all. Why is that, {target}?",
+          "Quiet ones worry me most. Isn't that right, {target}?"
+        ]
+      },
+      "default": {
+        "any": [
+          "You've been very quiet, {target}. Too quiet.",
+          "Nothing to say, {target}? Interesting.",
+          "Silence is a choice. I've noticed yours."
+        ]
+      }
     }
   },
   "greet": {

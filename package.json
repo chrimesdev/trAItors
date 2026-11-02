@@ -20,7 +20,9 @@
     "format:check": "prettier --check .",
     "sim": "tsx scripts/sim-cli.ts",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm test",
-    "replay": "tsx scripts/replay.ts"
+    "replay": "tsx scripts/replay.ts",
+    "balance": "tsx scripts/balance.ts",
+    "tune": "tsx scripts/tune.ts"
   },
   "dependencies": {
     "phaser": "4.2.1"

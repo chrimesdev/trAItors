@@ -165,7 +165,12 @@ function applyStatement(s: GameState, st: PlayerStatement, defences: Record<Id, 
   const b = s.balance;
   const reactions: Speech[] = [];
   if (st.kind === 'quiet') {
-    log(s, 'You keep your head down.');
+    for (const l of listeners(s, PLAYER_ID)) addSuspicion(s, l, PLAYER_ID, b.pressure.quietPenalty);
+    const noticer = [...listeners(s, PLAYER_ID)].sort(
+      (x, y) => (y.suspicion[PLAYER_ID] ?? 0) - (x.suspicion[PLAYER_ID] ?? 0),
+    )[0];
+    if (noticer) reactions.push({ speaker: noticer.id, kind: 'quietNoted', target: PLAYER_ID });
+    log(s, 'You keep your head down. People notice.');
     return reactions;
   }
   if (st.isLie) s.player.lies.push({ day: s.day, toNpc: 'table', claim: describeStatement(s, st) });
@@ -292,6 +297,13 @@ export function resolveRoundTable(s: GameState, playerVote: Id, statement: Playe
   for (const sp of speeches) applySpeech(s, sp, defences);
   const reactions = applyStatement(s, statement, defences);
 
+  // Keeping to yourself: Faithfuls you never spoke to today trust you a little less.
+  const strangers = aliveNpcs(s).filter((n) => !s.player.contactsToday.includes(n.id));
+  for (const n of strangers) addSuspicion(s, n, PLAYER_ID, b.pressure.isolationPenalty);
+  if (strangers.length > 0 && strangers.length === aliveNpcs(s).length) {
+    log(s, 'You spoke to nobody today. It has not gone unnoticed.');
+  }
+
   const votes = castVotes(s, playerVote, defences);
   const banished = chooseBanished(s, votes);
   s.lastVote = { day: s.day, votes, banished };
@@ -327,6 +339,23 @@ export function resolveRoundTable(s: GameState, playerVote: Id, statement: Playe
   const out = getNpc(s, banished);
   out.alive = false;
   log(s, `${out.name} is banished. They were a Faithful.`);
+
+  // An innocent is gone: whoever pushed for it loses credibility.
+  const accusers = new Set(
+    speeches
+      .filter((sp) => (sp.kind === 'accuse' || sp.kind === 'grudge') && sp.target === banished)
+      .map((sp) => sp.speaker),
+  );
+  if (statement.kind === 'accuse' && statement.target === banished) accusers.add(PLAYER_ID);
+  for (const l of aliveNpcs(s)) {
+    for (const a of accusers) if (a !== l.id) addSuspicion(s, l, a, b.pressure.pushedInnocentPenalty);
+    for (const [voter, target] of Object.entries(votes)) {
+      if (target === banished && voter !== l.id && !accusers.has(voter)) {
+        addSuspicion(s, l, voter, b.pressure.wrongVotePenalty);
+      }
+    }
+  }
+  if (accusers.has(PLAYER_ID)) log(s, `You pushed hardest for ${out.name}. The table remembers.`);
 
   if (aliveNpcs(s).length <= b.day.faithfulsLeftToWin) {
     s.outcome = 'win';

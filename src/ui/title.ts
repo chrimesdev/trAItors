@@ -18,7 +18,7 @@ function ago(iso: string): string {
 
 export const HOW_TO_PLAY = `
   <p>You are the <b>Traitor</b>. Six Faithfuls share the mansion, and none of them know it’s you.
-  Survive until only two of them are left.</p>
+  Survive until only one of them is left.</p>
   <ul>
     <li><b>Day.</b> Walk with <kbd>WASD</kbd> or the arrow keys. Every door you go through and every
       conversation uses one of your <b>6 actions</b>. Press <kbd>E</kbd> to act in a room.</li>
@@ -29,9 +29,9 @@ export const HOW_TO_PLAY = `
     <li><b>Talk.</b> Chat to learn who suspects whom. Seed doubt, form alliances, bribe. Hold
       <kbd>Shift</kbd> to lie, but Detectives check what you say against what they saw.</li>
     <li><b>Round Table.</b> Everyone speaks, you make your case, everyone votes. Most votes is
-      banished. Ties go against you.</li>
+      banished. Ties go against you. Staying quiet, or ignoring people all day, looks suspicious.</li>
     <li><b>Night.</b> Choose a victim and where they’re found. Anyone remembered near that room
-      falls under suspicion, including you.</li>
+      falls under suspicion, including you. So does whoever the victim suspected.</li>
   </ul>
   <p><kbd>1</kbd>–<kbd>9</kbd> pick options · <kbd>Space</kbd> continues · <kbd>Esc</kbd> backs out or opens the menu.</p>
 `;

@@ -34,7 +34,7 @@ describe('save and resume', () => {
   it('autosaves after every command and resumes to the identical state', () => {
     const storage = memoryStorage();
     const a = new GameStore(42, storage);
-    playSome(a, 8);
+    playSome(a, 4); // stay within day 1 so the game can't have ended
     const file = readSave(storage);
     expect(file?.version).toBe(SAVE_VERSION);
     expect(file?.commands).toHaveLength(a.commands.length);
@@ -59,7 +59,7 @@ describe('save and resume', () => {
   it('replaying the saved commands from the seed reproduces the game', () => {
     const storage = memoryStorage();
     const a = new GameStore(11, storage);
-    playSome(a, 15);
+    playSome(a, 4);
     const file = readSave(storage)!;
     const replayed = file.commands.reduce(applyCommand, createGame(file.state.seed, defaultContent));
     expect(replayed).toEqual(a.state);

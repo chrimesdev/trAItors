@@ -10,8 +10,8 @@ export const BALANCE = {
     ticksPerDay: 6,
     actionBudget: 6,
     maxDays: 6,
-    /** Win when this many (or fewer) Faithfuls remain. */
-    faithfulsLeftToWin: 2,
+    /** Win when this many (or fewer) Faithfuls remain. 1 = a final-three showdown on day 3. */
+    faithfulsLeftToWin: 1,
   },
   suspicion: {
     initial: 10,
@@ -90,6 +90,22 @@ export const BALANCE = {
     grudgeFactor: 0.5,
     sameVoteTrustGain: 0.2,
     votedAgainstTrustLoss: -0.3,
+  },
+  /**
+   * Pressure that finds a Traitor who does nothing, or does too much of one thing (M5).
+   * Values chosen with `npm run tune`, confirmed with `npm run balance -- --games 1000`.
+   */
+  pressure: {
+    /** Staying quiet at the Round Table: everyone notices. */
+    quietPenalty: 2,
+    /** Each Faithful you didn't speak to today trusts you a little less. */
+    isolationPenalty: 1,
+    /** The victim's top suspect (if they suspected them at least accuseThreshold) draws suspicion. */
+    victimLeadPenalty: 8,
+    /** Accusing someone who is banished and turns out Faithful. */
+    pushedInnocentPenalty: 6,
+    /** Voting for someone who is banished and turns out Faithful. */
+    wrongVotePenalty: 2,
   },
   night: {
     sawPlayerInBodyRoomPenalty: 30,

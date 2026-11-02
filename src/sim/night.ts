@@ -4,18 +4,31 @@
  */
 import { decayRumours } from './rumours';
 import { npcArrives, sightingsOf } from './sightings';
-import { addSuspicion, aliveNpcs, getNpc, log, roomName } from './state';
+import { addSuspicion, aliveNpcs, getNpc, influence, log, roomName, topSuspect } from './state';
 import { buildDaySchedules } from './world';
 import { PLAYER_ID, type GameState, type Id } from './types';
 
 export function murder(s: GameState, victimId: Id, room: Id): void {
   const victim = getNpc(s, victimId);
+  // The dead remember: who was the victim onto? Read before they're gone.
+  const lead = topSuspect(s, victim);
+  const voiced = lead !== undefined && (victim.suspicion[lead] ?? 0) >= s.balance.roundTable.accuseThreshold;
   victim.alive = false;
-  s.lastMurder = { day: s.day, victim: victimId, room };
+  s.lastMurder = { day: s.day, victim: victimId, room, ...(voiced ? { lead } : {}) };
   s.history.murders.push({ ...s.lastMurder });
   log(s, `Under cover of the night shift, you murder ${victim.name} in the ${roomName(s, room)}.`);
 
   revealBody(s, victimId, room);
+  if (voiced && lead) {
+    for (const npc of aliveNpcs(s)) {
+      if (npc.id === lead) continue;
+      addSuspicion(s, npc, lead, s.balance.pressure.victimLeadPenalty * influence(npc, victimId));
+    }
+    log(
+      s,
+      `${victim.name} had been suspicious of ${lead === PLAYER_ID ? 'you' : (s.npcs[lead]?.name ?? lead)}.`,
+    );
+  }
   normaliseSuspicion(s);
 
   if (aliveNpcs(s).length <= s.balance.day.faithfulsLeftToWin) {
@@ -74,6 +87,7 @@ export function startDay(s: GameState, day: number): void {
   if (day > 1) decayRumours(s);
   buildDaySchedules(s);
   s.player.trail.push({ day, tick: 0, room: s.player.room });
+  s.player.contactsToday = [];
 
   if (s.lastMurder && s.lastMurder.day === day - 1) {
     log(

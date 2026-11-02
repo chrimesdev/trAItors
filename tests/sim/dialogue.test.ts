@@ -13,6 +13,7 @@ const KINDS: SpeechKind[] = [
   'grudge',
   'alibiConfirmed',
   'alibiDisproved',
+  'quietNoted',
 ];
 const SPEAKERS: Record<Archetype, string> = {
   detective: 'marcus',

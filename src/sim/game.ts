@@ -84,6 +84,7 @@ export function createGame(seed: number, content: Content, balance: Balance = BA
       lies: [],
       shield: false,
       bribeTokens: balance.verbs.startingBribeTokens,
+      contactsToday: [],
       trail: [],
     },
     npcs,
@@ -214,6 +215,9 @@ export function applyCommand(state: GameState, c: Command): GameState {
   const reason = validateCommand(state, c);
   if (reason) throw new InvalidCommandError(c, reason);
   const s = structuredClone(state);
+  if (c.type === 'chat' || c.type === 'seedDoubt' || c.type === 'ally' || c.type === 'bribe') {
+    if (!s.player.contactsToday.includes(c.npc)) s.player.contactsToday.push(c.npc);
+  }
 
   switch (c.type) {
     case 'move': {

@@ -9,7 +9,7 @@ import {
   naiveBot,
   validateCommand,
 } from '../../src/sim';
-import { newGame, play, runBot } from './helpers';
+import { newGame, play, quietBalance, runBot } from './helpers';
 
 describe('createGame', () => {
   it('starts day 1 in the hall with six living Faithfuls', () => {
@@ -121,7 +121,8 @@ describe('first impressions', () => {
   });
 
   it('an exact tie in suspicion never falls on the player', () => {
-    const s = newGame(); // quiet balance: every score is exactly equal
+    // Quiet balance with the silence/isolation penalties off: every score is exactly equal.
+    const s = newGame(quietBalance({ pressure: { quietPenalty: 0, isolationPenalty: 0 } }));
     const table = play(s, { type: 'endDay' });
     const after = applyCommand(table, { type: 'resolveRoundTable', playerVote: 'theo' });
     expect(Object.values(after.lastVote?.votes ?? {})).not.toContain('player');

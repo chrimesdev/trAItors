@@ -4,7 +4,7 @@
 
 A single-player social-deduction game for [GitHub Game Off 2026](https://itch.io/jam/game-off-2026) (theme: **SHIFT**), inspired by the TV format _The Traitors_.
 
-You are the only Traitor in a mansion of six AI Faithfuls. By day you roam the rooms, plant evidence, build alibis and seed rumours. At the Round Table the household votes someone out. By night, you kill. Survive to the final three without being banished.
+You are the only Traitor in a mansion of six AI Faithfuls. By day you roam the rooms, plant evidence, build alibis and seed rumours. At the Round Table the household votes someone out. By night, you kill. Survive to the final showdown without being banished.
 
 **Shift** is the one key that matters: hold it to sneak through the halls, hold it to lie at the table.
 
@@ -26,6 +26,8 @@ npm test           # simulation unit tests (Vitest)
 npm run check      # typecheck + lint + format + tests (what CI runs)
 npm run sim -- --seed 42   # headless simulation run
 npm run replay -- report.txt  # replay a playtester's run report
+npm run balance            # win rate and game length for idle / naive / careful scripted players
+npm run tune               # grid-search balance knobs against the targets (a few minutes)
 npm run build      # static build in dist/ for itch.io
 ```
 

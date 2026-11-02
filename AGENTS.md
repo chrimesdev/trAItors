@@ -20,6 +20,8 @@ npm run build
 
 Add or update Vitest tests in `tests/sim/` for every rule you implement, using the milestone's "Done when" items as test cases.
 
+If you change a rule or a number in `balance.ts`, run `npm run balance` and compare against `docs/open-questions.md` (Decided #2 & 7). `tests/sim/balance.test.ts` fails if difficulty drifts out of its bands.
+
 ## Scope
 
 The deadline is **1 December 2026, 13:37 PST**. Do not add features outside the current milestone. The guiding rule: _cut anything that does not change the Round Table._

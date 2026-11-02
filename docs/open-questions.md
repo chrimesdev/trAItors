@@ -2,42 +2,23 @@
 
 Decisions deferred to a later milestone. Each has the evidence so far and the options on the table. Close an item by moving it to **Decided** with the date and what was chosen.
 
-## For M5 (balance & feel)
+Balance numbers come from `npm run balance` (scripted players over many seeded games). `npm run tune` grid-searches knobs against the targets.
 
-### 1. Games are too short
-
-**Evidence (M1, 2 Nov):** each day removes two Faithfuls (one banished, one murdered). With 6 NPCs and `faithfulsLeftToWin: 2`, a game lasts about 2 days; `maxDays: 6` never triggers. `npm run sim -- --runs 1000` → average length **1.87 days**.
-
-**Options:**
-
-- **A. 8 NPCs instead of 6.** Adds a third day and more social surface. Costs two more characters (schedules, dialogue, portraits, sprites).
-- **B. Win at 1 Faithful left** (`faithfulsLeftToWin: 1`). Roughly one more day. No new content.
-- **C. Murder is optional each night.** Closest to the TV show; lets the player lie low; lengthens the game most. Adds a "spare them tonight" choice to the night screen.
-- Combinations, e.g. B + C.
-
-**Leaning:** C, possibly with B.
-
-### 2. Win rate is too high for a careless player
-
-**Evidence (M1):** the naive bot (random legal moves, quiet at the table, random votes) wins **60.2%** of 1000 games. Plan target: naive ≈ 25%, careful ≈ 55%.
-
-**Likely levers** (all in `src/sim/balance.ts`): tie-break and first-impression jitter, `accuseThreshold`, body-room penalties, detection chances, number of Faithfuls. Depends heavily on question 1, so settle that first.
-
-**Needed first:** a "careful" bot (sneaks, plants away from witnesses, accuses with evidence) so both targets can be measured.
+## Still open
 
 ### 3. Action budget vs. map size
 
 **Evidence:** every room change costs one of six actions. Hall → Cellar is three moves, so a cross-mansion plant can take the whole day.
 
-**Options:** keep (scarcity is the point), raise `actionBudget`, or make moving within a wing free. Revisit after first playtest (M4).
+**Options:** keep (scarcity is the point), raise `actionBudget`, or make moving within a wing free. **Revisit after the first playtest.**
 
 ### 4. Is one caught lie fatal?
 
-**Evidence (M3, seed 15):** one lie to Marcus that he disproved at the table, then a true alibi, and the player was banished on day 1 with 5 of 7 votes. The Detective adds +30 and everyone else gets +30 × 0.5 × their trust in him, on top of their own accusations.
+**Evidence (M3, seed 15):** one lie to Marcus that he disproved at the table, then a true alibi, and the player was banished on day 1 with 5 of 7 votes. The Detective adds +30 and everyone else gets +30 × 0.5 × their trust in him, on top of their own accusations. Not yet measured at scale: the careful bot never lies.
 
 **Question:** should getting caught once be a near-certain loss, or a serious setback you can talk your way out of? The show suggests the latter.
 
-**Levers:** `lies.contradictionPenalty`, `evidence.announceFactor`, `roundTable.accuseThreshold`; or let the player answer a contradiction at the table ("I must have been mistaken") at a smaller cost.
+**Levers:** `lies.contradictionPenalty`, `evidence.announceFactor`, `roundTable.accuseThreshold`; or let the player answer a contradiction at the table ("I must have been mistaken") at a smaller cost. **Next step:** a "liar" bot to measure it.
 
 ### 5. The trust web starts empty
 
@@ -49,14 +30,33 @@ Decisions deferred to a later milestone. Each has the evidence so far and the op
 
 **Evidence (M3):** with Shift held, the doubt menu lists all ten rooms as lies, which runs past the 1–9 keys. Fine for now; may want to limit to adjacent rooms or the target's own wing once the art pass changes the layout.
 
-### 7. Doing nothing wins
+### 8. Do new players get banished too early?
 
-**Evidence (M4, seed 42):** wait out each day without moving, stay quiet at every Round Table, vote for whoever is listed first, murder whoever is listed first → **won on day 2**. Final suspicion of the player was 5–12 from everyone; Theo never saw the player at all.
+**Evidence (M5, 1000 games):** the random-move bot is banished on **day 1 in 41%** of games, mostly from planting or picking up evidence in front of people, lies that get caught, and bribes that get exposed. Those are the player's own mistakes and the end screen explains them, but losing within five minutes might put playtesters off.
 
-**Why:** suspicion only rises from being seen somewhere damning, evidence, lies and accusations. A player who never acts gives the Faithfuls nothing, so they turn on each other. Closely tied to #1 (short games) and #2 (high win rate).
-
-**Options:** suspicion of whoever stays quiet ("they never say anything…"), the Paranoid targeting low-profile players, a minimum number of actions per day, or NPCs noticing who benefits from each banishment. Probably needs a fix before the playtest results mean much. Worth checking with `npm run sim` using an idle bot.
+**Watch in the playtest:** how many testers lose on day 1, and whether the end screen made the reason clear. If too many, options are a gentler day 1 (e.g. NPCs don't accuse below a higher threshold on day 1) or a scripted tutorial day.
 
 ## Decided
 
-_Nothing yet._
+### 1. Games are too short → B: final three (2 Nov)
+
+`day.faithfulsLeftToWin` is now **1**: you win when one Faithful is left, which makes day 3 a three-person showdown at the Round Table. A well-played game now lasts **2.9 days** (was 2.0). A (8 NPCs) is more content than the deadline allows; C (optional murders) is unnecessary for length now and remains a possible addition if games feel samey.
+
+### 2 & 7. Too easy, and doing nothing wins → four pressure rules (2 Nov)
+
+Measured with three scripted players over 1000 games each:
+
+| Player                                                      | Before | After     | Target |
+| ----------------------------------------------------------- | ------ | --------- | ------ |
+| **Idle**: never acts, stays quiet                           | 49%    | **0.8%**  | low    |
+| **Naive**: random legal actions                             | 62%    | **11%**   | ~25%   |
+| **Careful**: frames a scapegoat, plants unseen, kills risks | 98%    | **53.5%** | ~55%   |
+
+New rules (all in `balance.pressure`, values chosen by `npm run tune`):
+
+- **Silence is noticed:** staying quiet at the table adds suspicion, and someone says so (`quietPenalty` 2).
+- **Keeping to yourself:** each Faithful you didn't speak to today trusts you a little less (`isolationPenalty` 1).
+- **The dead remember:** survivors suspect whoever the victim suspected, shown on the morning card (`victimLeadPenalty` 8). Killing whoever is onto you now points at you.
+- **Pushing an innocent:** accusing or voting out someone who turns out Faithful costs credibility (`pushedInnocentPenalty` 6, `wrongVotePenalty` 2). Applies to NPCs too.
+
+Naive is below its target, but the bot is cruder than a real first-timer: it never speaks up at the table and plants in front of witnesses. See #8. `tests/sim/balance.test.ts` keeps these within wide bands so later changes can't silently break the difficulty.

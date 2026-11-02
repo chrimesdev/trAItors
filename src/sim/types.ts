@@ -158,7 +158,8 @@ export type SpeechKind =
   | 'defend'
   | 'grudge'
   | 'alibiConfirmed'
-  | 'alibiDisproved';
+  | 'alibiDisproved'
+  | 'quietNoted';
 
 /** Structured speech. Dialogue templates (M3) turn these into words. */
 export interface Speech {
@@ -195,6 +196,8 @@ export interface GameState {
     lies: Lie[];
     shield: boolean;
     bribeTokens: number;
+    /** Faithfuls the player spoke to today (chat, seed doubt, ally, bribe). */
+    contactsToday: Id[];
     trail: TrailStep[];
   };
   npcs: Record<Id, Npc>;
@@ -208,8 +211,8 @@ export interface GameState {
   /** Everything that happened at the last Round Table, in order, for the UI to replay. */
   lastTable?: TableRecord;
   /** Every Round Table and murder so far, for the end-of-game replay. */
-  history: { tables: TableRecord[]; murders: { day: number; victim: Id; room: Id }[] };
-  lastMurder?: { day: number; victim: Id; room: Id };
+  history: { tables: TableRecord[]; murders: { day: number; victim: Id; room: Id; lead?: Id }[] };
+  lastMurder?: { day: number; victim: Id; room: Id; lead?: Id };
   outcome?: 'win' | 'lose';
 }
 
