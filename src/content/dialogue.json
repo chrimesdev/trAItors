@@ -1,0 +1,162 @@
+{
+  "_comment": "Lines by kind -> archetype (or default) -> band (mid/high, or any). Slots: {speaker} {target} {Target} {room} {item} {about}. {target} becomes 'you' when it is the player.",
+  "speech": {
+    "accuse": {
+      "detective": {
+        "mid": [
+          "The timings don't add up for {target}.",
+          "I've been keeping notes. {Target}'s movements trouble me.",
+          "Small inconsistencies, all of them around {target}."
+        ],
+        "high": [
+          "I'll say it plainly: {target}. Every thread I pull leads back there.",
+          "I've seen enough. It's {target}.",
+          "Look at the pattern, not the person. The pattern says {target}."
+        ]
+      },
+      "sheep": {
+        "any": [
+          "I... I think a few of us are worried about {target}?",
+          "Everyone's been saying {target}, and honestly, I agree.",
+          "I don't want to be the one to say it, but... {target}."
+        ]
+      },
+      "loyalist": {
+        "any": [
+          "I'd stake my place on it. {Target} isn't one of us.",
+          "{Target}. I'm sorry, but it needs saying.",
+          "I'm loyal to the Faithful, and that means naming {target}."
+        ]
+      },
+      "grudge": {
+        "any": [
+          "Funny how {target} has kept so quiet. Not any more.",
+          "Let's talk about {target}, shall we?",
+          "I've been watching {target}. I don't like what I see."
+        ]
+      },
+      "paranoid": {
+        "any": [
+          "Nobody's looking at {target}. That's exactly why we should.",
+          "{Target} is far too comfortable. Far too comfortable.",
+          "Doesn't anyone else find {target} a little too helpful?"
+        ]
+      }
+    },
+    "defend": {
+      "default": {
+        "any": [
+          "Leave {target} alone. I'd trust them with my life.",
+          "{Target} is with me. Look elsewhere.",
+          "Whatever you think of {target}, you're wrong."
+        ]
+      }
+    },
+    "grudge": {
+      "default": {
+        "any": [
+          "{Target} pointed the finger at me. I haven't forgotten.",
+          "Remember who accused me, everyone. It was {target}.",
+          "Throw mud at me, {target}? Watch it come back."
+        ]
+      }
+    },
+    "evidence": {
+      "detective": {
+        "any": [
+          "Found in the {room}: the {item}. It belongs to {target}. I'd like an explanation.",
+          "I recovered the {item} from the {room}. We all know whose that is. {Target}?"
+        ]
+      },
+      "default": {
+        "any": [
+          "Look what I found in the {room}! The {item}. That's {target}'s, isn't it?",
+          "The {item} turned up in the {room}. {Target}, care to explain?"
+        ]
+      }
+    },
+    "evidenceUnknown": {
+      "default": {
+        "any": [
+          "I found the {item} in the {room}. I don't know what it means, but it frightens me.",
+          "Someone left the {item} in the {room}. Someone at this table."
+        ]
+      }
+    },
+    "evidenceByPlayer": {
+      "default": {
+        "any": [
+          "You lay the {item} on the table. \"Found this in the {room}. It's {target}'s.\"",
+          "You slide the {item} across the table. \"The {room}. Whose do we think this is?\""
+        ]
+      }
+    },
+    "caughtPlanting": {
+      "default": {
+        "any": [
+          "I saw {target} put the {item} in the {room}. With my own eyes.",
+          "Don't let them fool you. {Target} planted that {item}. I watched them do it."
+        ]
+      }
+    },
+    "contradiction": {
+      "detective": {
+        "any": [
+          "{Target} told me {about} was near the {room}. I checked. It isn't true.",
+          "I don't take kindly to being lied to. {About} was never in the {room}, and you know it."
+        ]
+      }
+    },
+    "bribeExposed": {
+      "default": {
+        "any": [
+          "I have to say it... {target} tried to buy my vote.",
+          "{Target} offered me something yesterday. To keep quiet. I won't."
+        ]
+      }
+    },
+    "alibiConfirmed": {
+      "default": {
+        "any": [
+          "That checks out. I saw {target} in the {room} myself.",
+          "True enough. {Target} was in the {room}."
+        ]
+      }
+    },
+    "alibiDisproved": {
+      "default": {
+        "any": [
+          "The {room}? I had my eye on {target} all day. Not once in the {room}.",
+          "No. I watched {target}. They were never in the {room}."
+        ]
+      }
+    }
+  },
+  "greet": {
+    "detective": {
+      "warm": ["Ah. Good. A sensible face.", "You've a sharp eye. I could use one."],
+      "neutral": ["Mm. What is it?", "Make it quick. I'm thinking."],
+      "cold": ["I'm watching you, you know.", "Careful. I remember everything."]
+    },
+    "sheep": {
+      "warm": ["Oh, thank goodness, a friend!", "Hi! Is everyone okay? Are you okay?"],
+      "neutral": ["Um. Hello?", "Did you need something?"],
+      "cold": ["I don't think I should be talking to you.", "People are saying things about you..."]
+    },
+    "loyalist": {
+      "warm": ["Whatever happens, I've got your back.", "Partner. What do you need?"],
+      "neutral": ["Faithful to the end. You?", "Speak up, I'm listening."],
+      "cold": ["I don't trust you. Not yet.", "Prove you're one of us."]
+    },
+    "grudge": {
+      "warm": ["You're one of the decent ones.", "At least you've never stabbed me in the back."],
+      "neutral": ["What do you want?", "Hmph. Go on."],
+      "cold": ["I know what you're like.", "Back for another go at me?"]
+    },
+    "paranoid": {
+      "warm": ["You... seem alright. For now.", "Keep your voice down. They listen."],
+      "neutral": ["Why are you talking to me? What do you know?", "Who sent you?"],
+      "cold": ["Stay back. I know what you are.", "Everyone's lying. Especially you."]
+    }
+  }
+}

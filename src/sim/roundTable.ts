@@ -161,11 +161,12 @@ function applySpeech(s: GameState, sp: Speech, defences: Record<Id, number>): vo
   }
 }
 
-function applyStatement(s: GameState, st: PlayerStatement, defences: Record<Id, number>): void {
+function applyStatement(s: GameState, st: PlayerStatement, defences: Record<Id, number>): Speech[] {
   const b = s.balance;
+  const reactions: Speech[] = [];
   if (st.kind === 'quiet') {
     log(s, 'You keep your head down.');
-    return;
+    return reactions;
   }
   if (st.isLie) s.player.lies.push({ day: s.day, toNpc: 'table', claim: describeStatement(s, st) });
 
@@ -190,15 +191,26 @@ function applyStatement(s: GameState, st: PlayerStatement, defences: Record<Id, 
       const sawYouThere = seen.some((m) => m.room === st.room);
       if (wasThere && sawYouThere) {
         addSuspicion(s, d, PLAYER_ID, b.lies.verifiedTruthBonus);
+        reactions.push({ speaker: d.id, kind: 'alibiConfirmed', target: PLAYER_ID, room: st.room });
       } else if (!wasThere && !sawYouThere && seen.length >= b.lies.alibiSightingsNeeded) {
         addSuspicion(s, d, PLAYER_ID, b.lies.contradictionPenalty);
+        for (const l of listeners(s, d.id)) {
+          addSuspicion(
+            s,
+            l,
+            PLAYER_ID,
+            b.lies.contradictionPenalty * b.evidence.announceFactor * influence(l, d.id),
+          );
+        }
         const lie = s.player.lies[s.player.lies.length - 1];
         if (st.isLie && lie) lie.contradictedBy = d.id;
-        log(s, `${d.name}: "I watched you all day. You were never in there."`);
+        reactions.push({ speaker: d.id, kind: 'alibiDisproved', target: PLAYER_ID, room: st.room });
+        log(s, `${d.name} says you were never in the ${s.rooms[st.room]?.name ?? st.room}.`);
       }
     }
   }
   log(s, `You ${describeStatement(s, st)}.`);
+  return reactions;
 }
 
 function describeStatement(s: GameState, st: Exclude<PlayerStatement, { kind: 'quiet' }>): string {
@@ -276,12 +288,14 @@ export function chooseBanished(s: GameState, votes: Record<Id, Id>): Id {
 export function resolveRoundTable(s: GameState, playerVote: Id, statement: PlayerStatement): void {
   const b = s.balance;
   const defences: Record<Id, number> = {};
-  for (const sp of roundTableSpeeches(s)) applySpeech(s, sp, defences);
-  applyStatement(s, statement, defences);
+  const speeches = roundTableSpeeches(s);
+  for (const sp of speeches) applySpeech(s, sp, defences);
+  const reactions = applyStatement(s, statement, defences);
 
   const votes = castVotes(s, playerVote, defences);
   const banished = chooseBanished(s, votes);
   s.lastVote = { day: s.day, votes, banished };
+  s.lastTable = { day: s.day, speeches, statement, reactions, votes, banished };
   log(
     s,
     'Votes: ' +

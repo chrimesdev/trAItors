@@ -1,10 +1,15 @@
 import Phaser from 'phaser';
 import { GameStore, seedFromUrl } from './app/store';
 import { MansionScene } from './phaser/scenes/Mansion';
+import type { GameState } from './sim';
 import { mountFeed } from './ui/feed';
 import { mountHud } from './ui/hud';
 import { mountModals } from './ui/modals';
+import { mountMorning } from './ui/morning';
+import { mountNight } from './ui/night';
 import { mountReveal } from './ui/reveal';
+import { mountRoundTable } from './ui/roundTable';
+import { mountTalk } from './ui/talk';
 import './ui/styles.css';
 
 const overlay = document.getElementById('overlay');
@@ -15,27 +20,42 @@ const store = new GameStore(seedFromUrl());
 (window as unknown as { traitors: GameStore }).traitors = store;
 
 let scene: MansionScene | null = null;
+
 const sidebar = document.createElement('aside');
 sidebar.className = 'sidebar';
 overlay.appendChild(sidebar);
 const hud = mountHud(sidebar);
 const reveal = mountReveal(sidebar);
 const feed = mountFeed(sidebar);
-const modals = mountModals(
-  overlay,
-  store,
-  () => scene?.visibleTo() ?? [],
-  () => Math.floor(Math.random() * 2 ** 31),
-);
 
-const render = (s = store.state, prev: typeof s | null = null): void => {
+// Full-screen moments. The Round Table plays out its reveal after the engine has
+// already moved on to night, so night and the end screen wait until it closes.
+const table = mountRoundTable(overlay, store, () => render(store.state, store.state));
+const night = mountNight(overlay, store, () => table.isOpen());
+const talk = mountTalk(overlay, store);
+const morning = mountMorning(overlay);
+const modals = mountModals(overlay, store, {
+  visibleTo: () => scene?.visibleTo() ?? [],
+  newSeed: () => Math.floor(Math.random() * 2 ** 31),
+  openTalk: (npc) => talk.open(npc),
+  blocked: () => table.isOpen(),
+});
+
+function render(s: GameState, prev: GameState | null): void {
   hud.render(s);
   feed.render(s, prev);
   reveal.render(s);
+  talk.render(s);
+  table.render(s, prev);
+  night.render(s);
+  morning.render(s, prev);
   modals.render(s, prev);
-};
+}
 store.subscribe(render);
-render();
+render(store.state, null);
+
+const uiBlocking = (): boolean =>
+  modals.isOpen() || talk.isOpen() || table.isOpen() || night.isOpen() || morning.isOpen();
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -51,7 +71,7 @@ const game = new Phaser.Game({
 game.scene.add('Mansion', MansionScene, true, {
   store,
   ui: {
-    isUiBlocking: () => modals.isOpen(),
+    isUiBlocking: uiBlocking,
     openInteract: () => modals.openInteract(),
     onSneakChange: (sneaking: boolean) => hud.setSneaking(sneaking),
   },

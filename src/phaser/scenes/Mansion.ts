@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
+import { ARCHETYPE_COLOUR } from '../../app/palette';
 import type { GameStore } from '../../app/store';
+import type { Archetype } from '../../sim';
 import mansion from '../../content/mansion.json';
 import { aliveOnly, type GameState, type Id } from '../view';
 import { Layout, TILE, type Point } from '../systems/layout';
@@ -20,15 +22,6 @@ const PALETTE = {
   cone: 0xf5d76e,
   coneAlert: 0xff4d6d,
   label: '#8f8aa3',
-};
-
-/** NPC colours by archetype until real portraits arrive in M6. */
-const NPC_COLOURS: Record<string, number> = {
-  detective: 0x6ec1f5,
-  sheep: 0xe8e2d0,
-  loyalist: 0x7fd18b,
-  grudge: 0xc58cf5,
-  paranoid: 0xf5a46e,
 };
 
 export interface MansionCallbacks {
@@ -233,7 +226,7 @@ export class MansionScene extends Phaser.Scene {
   }
 
   private createNpcView(id: Id, name: string, archetype: string, index: number): NpcView {
-    const colour = NPC_COLOURS[archetype] ?? 0xcccccc;
+    const colour = ARCHETYPE_COLOUR[archetype as Archetype] ?? 0xcccccc;
     const body = this.add.circle(0, 0, NPC_RADIUS, colour).setDepth(9).setStrokeStyle(2, 0x1a1a2e);
     const label = this.add
       .text(0, 0, name, { fontFamily: 'system-ui, sans-serif', fontSize: '10px', color: '#f3f1ee' })

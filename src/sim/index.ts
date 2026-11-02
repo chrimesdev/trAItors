@@ -8,4 +8,6 @@ export { BALANCE, type Balance } from './balance';
 export { createGame, applyCommand, validateCommand, legalCommands, InvalidCommandError } from './game';
 export { roundTableSpeeches, castVotes, countVotes } from './roundTable';
 export { recordSighting } from './sightings';
+export { npcRoomOf, playerRoomAt, playerSawToday, roomsPlayerVisitedToday } from './queries';
 export { naiveBot, type Bot } from './bots';
+export { speak, greet } from './dialogue';

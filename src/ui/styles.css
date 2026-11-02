@@ -1,3 +1,8 @@
+/* Panels set their own display; make sure the hidden attribute always wins. */
+[hidden] {
+  display: none !important;
+}
+
 :root {
   --ink: #1a1a2e;
   --ink-2: #24243c;
@@ -178,4 +183,212 @@ kbd {
 .choices button .num {
   color: var(--gold);
   margin-right: 6px;
+}
+
+/* ------------------------------------------------------------------ M3 */
+
+:root {
+  --trust: #7fd18b;
+}
+
+.muted {
+  color: var(--muted);
+  font-weight: normal;
+}
+
+.lying {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.choices button.lie {
+  border-color: rgba(255, 77, 109, 0.35);
+}
+.lie-tag {
+  margin-left: 8px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 0 4px;
+  border-radius: 2px;
+}
+
+/* Portraits: placeholder discs until M6 art. */
+.portrait {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 64px;
+}
+.portrait .face {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 15px;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  transition:
+    box-shadow 200ms,
+    transform 200ms,
+    border-color 300ms;
+}
+.portrait .name {
+  font-size: 11px;
+  color: var(--paper);
+  text-shadow: 0 1px 2px #000;
+}
+/* Body language: how they feel about you, never the number. */
+.portrait.attitude-warm .face {
+  border-color: rgba(127, 209, 139, 0.8);
+}
+.portrait.attitude-neutral .face {
+  border-color: rgba(245, 215, 110, 0.55);
+}
+.portrait.attitude-cold .face {
+  border-color: rgba(255, 77, 109, 0.85);
+}
+.portrait.dead .face,
+.portrait.banished .face {
+  filter: grayscale(1) brightness(0.55);
+}
+.portrait.speaking .face {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 4px rgba(245, 215, 110, 0.35);
+}
+
+/* Talk panel */
+.talk-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.talk-head .portrait .name {
+  display: none;
+}
+.quote {
+  margin: 2px 0 0;
+  font-style: italic;
+  color: var(--paper);
+}
+
+/* Full-map screens: Round Table and night */
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 80%; /* the mansion area; the sidebar stays visible */
+  height: 100%;
+  box-sizing: border-box;
+  padding: 1.5% 2.5%;
+  background: radial-gradient(ellipse at center, rgba(36, 36, 60, 0.97), rgba(10, 10, 20, 0.98));
+  display: flex;
+  flex-direction: column;
+}
+.screen-title {
+  margin: 0;
+  font-size: 18px;
+}
+.screen .hint {
+  color: var(--muted);
+  margin: 4px 0 8px;
+}
+
+.table-screen .ring {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin: 4px 8%;
+}
+.table-screen .ring::before {
+  /* the table */
+  content: '';
+  position: absolute;
+  inset: 22% 24%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, #3a2f2a, #241d1a);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6);
+}
+.trust-web {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.trust-web line {
+  transition:
+    stroke-width 900ms ease,
+    opacity 900ms ease,
+    stroke 900ms ease;
+  stroke-linecap: round;
+}
+.table-screen .ring .portrait {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+.chips {
+  display: flex;
+  gap: 2px;
+  min-height: 16px;
+}
+.chip {
+  font-size: 10px;
+  min-width: 14px;
+  padding: 0 3px;
+  text-align: center;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 7px;
+  animation: drop 260ms ease-out;
+}
+@keyframes drop {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+}
+.table-screen .speech {
+  min-height: 52px;
+  padding: 6px 12px;
+  background: rgba(14, 14, 26, 0.7);
+  border-left: 3px solid var(--gold);
+}
+.table-screen .speaker {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--gold);
+}
+.table-screen .text {
+  font-size: 14px;
+}
+.table-screen .controls {
+  margin-top: 6px;
+}
+.table-screen .controls .choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+}
+
+.night-screen {
+  background: radial-gradient(ellipse at center, rgba(20, 16, 40, 0.97), rgba(4, 4, 10, 0.99));
+}
+.victims {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin: 14px 0;
+}
+.victims .portrait {
+  cursor: pointer;
+}
+
+.morning p {
+  margin: 0 0 10px;
 }

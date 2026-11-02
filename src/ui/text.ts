@@ -1,8 +1,8 @@
 /**
- * Turns commands and speeches into words. Placeholder phrasing for M2;
- * M3 replaces speech text with archetype dialogue templates.
+ * Short labels for names, rooms, items and menu commands.
+ * Speech lines come from the dialogue templates (sim/dialogue.ts).
  */
-import { PLAYER_ID, type Command, type GameState, type Id, type Speech } from '../sim';
+import { PLAYER_ID, type Command, type GameState, type Id } from '../sim';
 
 export function who(s: GameState, id: Id): string {
   return id === PLAYER_ID ? 'you' : (s.npcs[id]?.name ?? id);
@@ -34,26 +34,5 @@ export function describeCommand(s: GameState, c: Command): string {
       return 'Wait for the bell (end the day)';
     default:
       return c.type;
-  }
-}
-
-export function describeSpeech(s: GameState, sp: Speech): string {
-  const speaker = sp.speaker === PLAYER_ID ? 'You' : who(s, sp.speaker);
-  const target = sp.target ? who(s, sp.target) : 'someone';
-  switch (sp.kind) {
-    case 'evidence':
-      return `${speaker} produce${sp.speaker === PLAYER_ID ? '' : 's'} the ${item(s, sp.evidence)} found in the ${room(s, sp.room)}${sp.target ? `. It points at ${target}.` : '.'}`;
-    case 'caughtPlanting':
-      return `${speaker}: "I watched you plant the ${item(s, sp.evidence)}."`;
-    case 'contradiction':
-      return `${speaker}: "That's not what I saw. You lied to us."`;
-    case 'bribeExposed':
-      return `${speaker}: "You tried to buy my vote."`;
-    case 'accuse':
-      return `${speaker} accuses ${target}.`;
-    case 'grudge':
-      return `${speaker} hasn't forgiven ${target}.`;
-    case 'defend':
-      return `${speaker} stands up for ${target}.`;
   }
 }

@@ -150,7 +150,15 @@ export type PlayerStatement =
   | { kind: 'quiet' };
 
 export type SpeechKind =
-  'evidence' | 'caughtPlanting' | 'contradiction' | 'bribeExposed' | 'accuse' | 'defend' | 'grudge';
+  | 'evidence'
+  | 'caughtPlanting'
+  | 'contradiction'
+  | 'bribeExposed'
+  | 'accuse'
+  | 'defend'
+  | 'grudge'
+  | 'alibiConfirmed'
+  | 'alibiDisproved';
 
 /** Structured speech. Dialogue templates (M3) turn these into words. */
 export interface Speech {
@@ -160,6 +168,16 @@ export interface Speech {
   evidence?: Id;
   room?: Id;
   rumourId?: number;
+}
+
+export interface TableRecord {
+  day: number;
+  speeches: Speech[];
+  statement: PlayerStatement;
+  /** How the table reacted to the player's statement (e.g. a Detective checking an alibi). */
+  reactions: Speech[];
+  votes: Record<Id, Id>;
+  banished: Id;
 }
 
 export interface GameState {
@@ -187,6 +205,8 @@ export interface GameState {
   log: LogEntry[];
   lastReveal?: ChatReveal;
   lastVote?: { day: number; votes: Record<Id, Id>; banished: Id };
+  /** Everything that happened at the last Round Table, in order, for the UI to replay. */
+  lastTable?: TableRecord;
   lastMurder?: { day: number; victim: Id; room: Id };
   outcome?: 'win' | 'lose';
 }

@@ -31,6 +31,24 @@ Decisions deferred to a later milestone. Each has the evidence so far and the op
 
 **Options:** keep (scarcity is the point), raise `actionBudget`, or make moving within a wing free. Revisit after first playtest (M4).
 
+### 4. Is one caught lie fatal?
+
+**Evidence (M3, seed 15):** one lie to Marcus that he disproved at the table, then a true alibi, and the player was banished on day 1 with 5 of 7 votes. The Detective adds +30 and everyone else gets +30 × 0.5 × their trust in him, on top of their own accusations.
+
+**Question:** should getting caught once be a near-certain loss, or a serious setback you can talk your way out of? The show suggests the latter.
+
+**Levers:** `lies.contradictionPenalty`, `evidence.announceFactor`, `roundTable.accuseThreshold`; or let the player answer a contradiction at the table ("I must have been mistaken") at a smaller cost.
+
+### 5. The trust web starts empty
+
+**Evidence (M3):** everyone starts at trust 0, so the web has no lines until after the first vote. The first Round Table, the player's first look at the web, shows nothing.
+
+**Options:** seed small starting trusts from content (e.g. Dalton and Priya are old friends, Theo distrusts the detectives), or seeded jitter like first impressions. Content option also gives NPCs more personality.
+
+### 6. Seeding doubt lists every room as a lie
+
+**Evidence (M3):** with Shift held, the doubt menu lists all ten rooms as lies, which runs past the 1–9 keys. Fine for now; may want to limit to adjacent rooms or the target's own wing once the art pass changes the layout.
+
 ## Decided
 
 _Nothing yet._
