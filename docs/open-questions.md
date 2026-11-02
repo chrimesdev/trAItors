@@ -60,3 +60,15 @@ New rules (all in `balance.pressure`, values chosen by `npm run tune`):
 - **Pushing an innocent:** accusing or voting out someone who turns out Faithful costs credibility (`pushedInnocentPenalty` 6, `wrongVotePenalty` 2). Applies to NPCs too.
 
 Naive is below its target, but the bot is cruder than a real first-timer: it never speaks up at the table and plants in front of witnesses. See #8. `tests/sim/balance.test.ts` keeps these within wide bands so later changes can't silently break the difficulty.
+
+### 9. Tutorial day → a coached day 1, not a sim "day 0" (2 Nov)
+
+The plan's M5 asks for a scripted day 0 that forces one plant and one sneak. A separate day in the simulation would touch the reducer, win checks, saves, replays and every bot for a day whose outcome doesn't change the Round Table. Instead the first real day is coached: a sidebar card (`src/ui/coach.ts`) walks the player through **sneak → pick up → plant → talk**, each step ticked off from the commands already sent, and "Wait for the bell" stays hidden until the plant is done. It survives save/resume, costs nothing in the sim, and the careful bot shows this is the strongest opening anyway. Shown until completed once or hidden; the pause menu toggles **First-day tips**. Revisit after the playtest if testers still lose on day 1 (#8).
+
+### 10. Tells (2 Nov)
+
+Two tells so playtesters can name why they were suspected (M5 "Done when"):
+
+- **Glances.** An NPC whose suspicion of you is at least `tells.glanceSuspicion` (35) is _wary_: their name turns red while you share a room, every few seconds their sight cone turns to look straight at you, and the log notes it when they see you arrive or walk in on you. A glance that lands on you is a real sighting, so being suspected makes it harder to move unseen: the pressure is intentional.
+- **Whispers.** Rumours passed NPC to NPC float up as italic text between the two of them, red when they're about you. In your own room the log also says what you overheard. Only player-seeded rumours exist today, so every whisper is your own doubt spreading.
+

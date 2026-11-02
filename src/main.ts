@@ -3,6 +3,7 @@ import { browserStorage } from './app/save';
 import { GameStore, randomSeed, seedFromUrl } from './app/store';
 import { MansionScene } from './phaser/scenes/Mansion';
 import type { GameState } from './sim';
+import { mountCoach } from './ui/coach';
 import { mountEndScreen } from './ui/endScreen';
 import { mountFeed } from './ui/feed';
 import { mountHud } from './ui/hud';
@@ -32,6 +33,7 @@ const sidebar = document.createElement('aside');
 sidebar.className = 'sidebar';
 overlay.appendChild(sidebar);
 const hud = mountHud(sidebar, () => pause.open());
+const coach = mountCoach(sidebar, store, storage);
 const reveal = mountReveal(sidebar);
 const feed = mountFeed(sidebar);
 
@@ -44,6 +46,7 @@ const morning = mountMorning(overlay);
 const modals = mountModals(overlay, store, {
   visibleTo: () => scene?.visibleTo() ?? [],
   openTalk: (npc) => talk.open(npc),
+  hideEndDay: () => coach.blocksEndDay(),
 });
 const end = mountEndScreen(overlay, store, {
   blocked: () => table.isOpen(),
@@ -64,10 +67,12 @@ const pause = mountPause(overlay, store, {
   canOpen: () => !panels.some((p) => p.isOpen()),
   newSeed: randomSeed,
   toTitle: () => title.open(),
+  tips: coach,
 });
 
 function render(s: GameState, prev: GameState | null): void {
   hud.render(s);
+  coach.render(s);
   feed.render(s, prev);
   reveal.render(s);
   if (title.isOpen()) return; // the game behind the title waits

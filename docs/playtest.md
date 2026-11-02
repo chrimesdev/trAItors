@@ -14,6 +14,8 @@ Goal from the plan: **3 people finish a run without you explaining anything beyo
 
 Don't explain lying, evidence, sight cones or the Round Table. Finding those out is what we're testing.
 
+The sidebar shows **first-day tips** (sneak, pick up, plant, talk) on day 1 of their first game. Let them read it; don't add to it. Note whether they follow it, ignore it, or press *Hide tips*.
+
 ## While they play: what to note
 
 Write down the time and what happened at each of these:
@@ -26,6 +28,8 @@ Write down the time and what happened at each of these:
 | First talk to an NPC | |
 | First use of Shift (sneak or lie) | Which one? |
 | First evidence pickup / plant | |
+| First time an NPC's name turns red (glance) | Did they notice? Comment? |
+| First whisper floats between two NPCs | Did they notice? |
 | First Round Table | Minutes since start |
 | Each banishment | Did they react? Understand? |
 | End of game | Win/lose, which day |

@@ -107,6 +107,11 @@ export const BALANCE = {
     /** Voting for someone who is banished and turns out Faithful. */
     wrongVotePenalty: 2,
   },
+  /** Tells (M5): how the mansion shows you what the Faithfuls are thinking. */
+  tells: {
+    /** An NPC who suspects you at least this much watches you when you share a room. */
+    glanceSuspicion: 35,
+  },
   night: {
     sawPlayerInBodyRoomPenalty: 30,
     sawNpcInBodyRoomPenalty: 15,

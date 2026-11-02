@@ -8,7 +8,7 @@ import type { Command, GameState } from '../sim';
 
 export const SAVE_KEY = 'traitors.save.v1';
 /** Bump whenever GameState changes shape, so old saves are discarded instead of breaking. */
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 export interface KeyValueStorage {
   getItem(key: string): string | null;

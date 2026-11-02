@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { angleDiff, conePolygon, distanceToEdge, inCone, sweepFacing } from '../../src/phaser/systems/vision';
+import {
+  angleDiff,
+  conePolygon,
+  distanceToEdge,
+  glanceWeight,
+  inCone,
+  sweepFacing,
+} from '../../src/phaser/systems/vision';
 
 const room = { x: 0, y: 0, w: 100, h: 100 };
 const deg = (d: number) => (d * Math.PI) / 180;
@@ -45,5 +52,13 @@ describe('vision geometry', () => {
       expect(f).toBeGreaterThanOrEqual(0.5 - 1e-9);
       expect(f).toBeLessThanOrEqual(1.5 + 1e-9);
     }
+  });
+
+  it('glanceWeight holds a full look once per period and is zero in between', () => {
+    expect(glanceWeight(0, 4000, 800, 0)).toBe(0);
+    expect(glanceWeight(400, 4000, 800, 0)).toBe(1);
+    expect(glanceWeight(2000, 4000, 800, 0)).toBe(0);
+    expect(glanceWeight(4400, 4000, 800, 0)).toBe(1);
+    expect(glanceWeight(90, 4000, 800, 0, 180)).toBeCloseTo(0.5);
   });
 });

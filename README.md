@@ -55,7 +55,7 @@ See [`docs/implementation-plan.pdf`](docs/implementation-plan.pdf) for the full 
 | M2        | 7–10 Nov  | Mansion scene: tilemap, NPC schedules, sight cones ✅ |
 | M3        | 11–16 Nov | Dialogue, rumours, Round Table UI, trust web ✅       |
 | M4        | 17–19 Nov | Full loop, win/lose ✅ · first playtest pending       |
-| M5        | 20–23 Nov | Balance and feel                                      |
+| M5        | 20–23 Nov | Balance and feel ✅ · tells, first-day coach          |
 | M6        | 24–27 Nov | Art, audio, itch.io page                              |
 | M7        | 28–29 Nov | Ship (hard deadline 1 Dec 2026, 13:37 PST / 21:37 UK) |
 

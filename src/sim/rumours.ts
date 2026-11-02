@@ -7,15 +7,23 @@ import { addSuspicion, aliveNpcs, getNpc, influence, log, nameOf, npcRoom, roll,
 import { roomsVisitedToday } from './world';
 import { PLAYER_ID, type GameState, type Id, type Npc, type Rumour, type RumourClaim } from './types';
 
+/** What a rumour claims, as a clause: "Theo was near the Wine Cellar", "you have been acting shifty". */
+export function rumourText(s: GameState, r: Pick<Rumour, 'target' | 'claim' | 'room'>): string {
+  const you = r.target === PLAYER_ID;
+  const name = you ? 'you' : nameOf(s, r.target);
+  if (r.claim === 'seenNear' && r.room)
+    return `${name} ${you ? 'were' : 'was'} near the ${roomName(s, r.room)}`;
+  if (r.claim === 'hasMotive') return `${name} ${you ? 'have' : 'has'} a motive`;
+  return `${name} ${you ? 'have' : 'has'} been acting shifty`;
+}
+
 export function seedDoubt(s: GameState, npcId: Id, target: Id, room: Id | undefined, isLie: boolean): void {
   const npc = getNpc(s, npcId);
   const claim: RumourClaim = room ? 'seenNear' : 'actedShifty';
   const strength = s.balance.verbs.seedDoubtStrength;
 
   let lieIndex: number | undefined;
-  const claimText = room
-    ? `${nameOf(s, target)} was near the ${roomName(s, room)}`
-    : `${nameOf(s, target)} has been acting shifty`;
+  const claimText = rumourText(s, { target, claim, ...(room ? { room } : {}) });
   if (isLie) {
     lieIndex = s.player.lies.length;
     s.player.lies.push({ day: s.day, toNpc: npcId, claim: claimText });
@@ -72,9 +80,18 @@ export function rumourPass(s: GameState): void {
       if (additions.some((x) => x.holder === listener.id && sameStory(x, rumour))) continue;
       additions.push({ ...rumour, id: s.nextRumourId++, teller: teller.id, holder: listener.id, strength });
       addSuspicion(s, listener, rumour.target, strength * influence(listener, teller.id));
+      // A tell: whispers in your own room are overheard.
+      if (npcRoom(s, teller) === s.player.room) {
+        log(s, `You overhear ${teller.name} whisper to ${listener.name} that ${rumourText(s, rumour)}.`);
+      }
     }
   }
   s.rumours.push(...additions);
+}
+
+/** Rumours passed NPC to NPC since `sinceId` (a previous state's nextRumourId): the whispers to show. */
+export function whispersSince(s: GameState, sinceId: number): Rumour[] {
+  return s.rumours.filter((r) => r.id >= sinceId && r.teller !== PLAYER_ID);
 }
 
 /** Morning: rumours fade, and weak ones are forgotten. */

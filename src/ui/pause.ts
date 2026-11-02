@@ -13,7 +13,12 @@ export interface Pause {
 export function mountPause(
   overlay: HTMLElement,
   store: GameStore,
-  deps: { canOpen: () => boolean; newSeed: () => number; toTitle: () => void },
+  deps: {
+    canOpen: () => boolean;
+    newSeed: () => number;
+    toTitle: () => void;
+    tips?: { enabled(): boolean; setEnabled(on: boolean): void };
+  },
 ): Pause {
   const el = document.createElement('div');
   el.className = 'modal panel pause interactive';
@@ -41,6 +46,14 @@ export function mountPause(
     choices = [
       { label: 'Resume', onPick: close },
       { label: 'How to play', onPick: () => ((help = true), draw()) },
+      ...(deps.tips
+        ? [
+            {
+              label: `First-day tips: ${deps.tips.enabled() ? 'on' : 'off'}`,
+              onPick: () => (deps.tips?.setEnabled(!deps.tips.enabled()), draw()),
+            },
+          ]
+        : []),
       { label: `Restart this seed (${s.seed})`, onPick: () => (close(), store.newGame(s.seed)) },
       { label: 'New game', onPick: () => (close(), store.newGame(deps.newSeed())) },
       {

@@ -11,3 +11,5 @@ export { recordSighting } from './sightings';
 export { npcRoomOf, playerRoomAt, playerSawToday, roomsPlayerVisitedToday } from './queries';
 export { carefulBot, idleBot, naiveBot, scapegoat, type Bot } from './bots';
 export { speak, greet } from './dialogue';
+export { rumourText, whispersSince } from './rumours';
+export { watchingYou, isWary } from './tells';

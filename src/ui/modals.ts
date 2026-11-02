@@ -15,7 +15,7 @@ export interface Modals {
 export function mountModals(
   overlay: HTMLElement,
   store: GameStore,
-  deps: { visibleTo: () => Id[]; openTalk: (npc: Id) => void },
+  deps: { visibleTo: () => Id[]; openTalk: (npc: Id) => void; hideEndDay?: () => boolean },
 ): Modals {
   const el = document.createElement('div');
   el.className = 'modal panel interactive';
@@ -47,8 +47,9 @@ export function mountModals(
         deps.openTalk(n.id);
       },
     }));
+    const hideEndDay = deps.hideEndDay?.() ?? false;
     const actions = legalCommands(s)
-      .filter((c) => MENU_TYPES.includes(c.type))
+      .filter((c) => MENU_TYPES.includes(c.type) && !(hideEndDay && c.type === 'endDay'))
       .map((c) => ({ label: describeCommand(s, c), onPick: () => send(c) }));
     el.innerHTML = `<h3>${room(s, s.player.room)}</h3><p class="hint">Each action uses one of your day’s actions. <kbd>Esc</kbd> to close.</p>`;
     choices = [...talk, ...actions];

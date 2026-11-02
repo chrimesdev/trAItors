@@ -12,6 +12,7 @@ import { createRng } from './rng';
 import { resolveRoundTable } from './roundTable';
 import { rumourPass, seedDoubt } from './rumours';
 import { checkPlayer, npcArrives, playerArrives } from './sightings';
+import { noteArrivalGlance, noteGlances } from './tells';
 import { aliveNpcs, log, nameOf, npcRoom, rollFloat, roomName } from './state';
 import { ally, bribe, chat } from './verbs';
 import { isAdjacent, roomsVisitedToday } from './world';
@@ -206,7 +207,10 @@ function endOfAction(s: GameState): void {
   }
   for (const n of aliveNpcs(s)) {
     const before = n.schedule[s.tick - 1];
-    if (before !== npcRoom(s, n)) npcArrives(s, n.id);
+    if (before !== npcRoom(s, n)) {
+      npcArrives(s, n.id);
+      noteArrivalGlance(s, n.id);
+    }
   }
 }
 
@@ -231,6 +235,7 @@ export function applyCommand(state: GameState, c: Command): GameState {
             ? `. ${seenBy.map((id) => nameOf(s, id)).join(' and ')} ${seenBy.length === 1 ? 'notices' : 'notice'} you.`
             : '.'),
       );
+      noteGlances(s, seenBy);
       endOfAction(s);
       break;
     }

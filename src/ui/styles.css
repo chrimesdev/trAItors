@@ -595,3 +595,50 @@ textarea.report {
 .reveal-col h4:not(:first-child) {
   margin-top: 12px;
 }
+
+/* ------------------------------------------------------------------ M5 */
+
+/* Day-1 coach in the sidebar */
+.coach {
+  flex: none;
+  border-left-color: var(--gold);
+  position: relative;
+}
+.coach h4 {
+  margin: 0 0 4px;
+  color: var(--gold);
+}
+.coach ol {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+.coach li.done {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+.coach li.now {
+  color: var(--paper);
+  font-weight: 600;
+}
+.coach .hint {
+  margin: 6px 0 0;
+  color: var(--paper);
+  font-size: 12px;
+}
+.coach .skip {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font: inherit;
+  font-size: 11px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid rgba(143, 138, 163, 0.4);
+  padding: 1px 6px;
+  cursor: pointer;
+}
+.coach .skip:hover {
+  color: var(--paper);
+  border-color: var(--gold);
+}

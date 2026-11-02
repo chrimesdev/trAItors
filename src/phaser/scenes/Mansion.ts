@@ -1,16 +1,20 @@
 import Phaser from 'phaser';
 import { ARCHETYPE_COLOUR } from '../../app/palette';
 import type { GameStore } from '../../app/store';
-import type { Archetype } from '../../sim';
+import { rumourText, watchingYou, whispersSince, type Archetype, type Rumour } from '../../sim';
 import mansion from '../../content/mansion.json';
 import { aliveOnly, type GameState, type Id } from '../view';
 import { Layout, TILE, type Point } from '../systems/layout';
-import { conePolygon, inCone, sweepFacing, type Rect } from '../systems/vision';
+import { angleDiff, conePolygon, glanceWeight, inCone, sweepFacing, type Rect } from '../systems/vision';
 
 const WALK_SPEED = 120;
 const SNEAK_FACTOR = 0.5;
 const PLAYER_RADIUS = 7;
 const NPC_RADIUS = 9;
+// Tells: a wary NPC turns to look straight at you this often, for this long.
+const GLANCE_PERIOD_MS = 3600;
+const GLANCE_HOLD_MS = 900;
+const WHISPER_MS = 2800;
 
 const PALETTE = {
   wall: 0x0e0e1a,
@@ -22,6 +26,10 @@ const PALETTE = {
   cone: 0xf5d76e,
   coneAlert: 0xff4d6d,
   label: '#8f8aa3',
+  name: '#f3f1ee',
+  nameWary: '#ff4d6d',
+  whisper: '#f5d76e',
+  whisperAboutYou: '#ff4d6d',
 };
 
 export interface MansionCallbacks {
@@ -42,6 +50,8 @@ interface NpcView {
   phase: number;
   period: number;
   wasInCone: boolean;
+  /** Suspects the player enough to watch them while they share a room. */
+  wary: boolean;
 }
 
 /**
@@ -175,17 +185,22 @@ export class MansionScene extends Phaser.Scene {
       this.player.setPosition(c.x, c.y);
       this.body_.reset(c.x, c.y);
     }
+    // Rumours were traded before anyone moved on, so show them where the NPCs still stand.
+    if (prev && s.seed === prev.seed) this.showWhispers(s, whispersSince(s, prev.nextRumourId));
     this.syncNpcs(s, prev === null);
     this.syncEvidence(s);
   }
 
   private syncNpcs(s: GameState, instant: boolean): void {
     const ids = Object.keys(s.npcs);
+    const watching = new Set(watchingYou(s));
     ids.forEach((id, index) => {
       const npc = s.npcs[id];
       if (!npc) return;
       let view = this.npcs.get(id);
       if (!view) view = this.createNpcView(id, npc.name, npc.archetype, index);
+      view.wary = watching.has(id);
+      view.label.setColor(view.wary ? PALETTE.nameWary : PALETTE.name);
 
       if (!npc.alive) {
         this.tweens.killTweensOf([view.body, view.label, view.cone]);
@@ -243,6 +258,7 @@ export class MansionScene extends Phaser.Scene {
       phase: (index * 0.37) % 1,
       period: 4200 + index * 450,
       wasInCone: false,
+      wary: false,
     };
     this.npcs.set(id, view);
     return view;
@@ -295,8 +311,49 @@ export class MansionScene extends Phaser.Scene {
     return { half: ((d.coneDegrees / 2) * Math.PI) / 180, range: d.coneRangeTiles * this.layout.tileSize };
   }
 
+  /** Where the NPC is looking: the usual sweep, interrupted by a hard look at you if they're wary. */
   private facing(v: NpcView): number {
-    return sweepFacing(this.time.now, v.base, 1.2, v.period, v.phase);
+    const sweep = sweepFacing(this.time.now, v.base, 1.2, v.period, v.phase);
+    if (!v.wary) return sweep;
+    const w = glanceWeight(this.time.now, GLANCE_PERIOD_MS, GLANCE_HOLD_MS, v.phase);
+    if (w <= 0) return sweep;
+    const atPlayer = Math.atan2(this.player.y - v.pos.y, this.player.x - v.pos.x);
+    return sweep + angleDiff(atPlayer, sweep) * w;
+  }
+
+  /** Rumours passed between NPCs float up as whispered text between the two of them. */
+  private showWhispers(s: GameState, whispers: Rumour[]): void {
+    const bounds = this.physics.world.bounds;
+    whispers.forEach((r, i) => {
+      const a = this.npcs.get(r.teller);
+      const b = this.npcs.get(r.holder);
+      if (!a?.room || !b?.room) return;
+      const x = Phaser.Math.Clamp((a.pos.x + b.pos.x) / 2, 70, bounds.width - 70);
+      const y = (a.pos.y + b.pos.y) / 2 - NPC_RADIUS - 4 - (i % 3) * 12;
+      const aboutYou = r.target === 'player';
+      const text = this.add
+        .text(x, y, `“${rumourText(s, r)}…”`, {
+          fontFamily: 'system-ui, sans-serif',
+          fontSize: '9px',
+          fontStyle: 'italic',
+          color: aboutYou ? PALETTE.whisperAboutYou : PALETTE.whisper,
+          backgroundColor: 'rgba(14, 14, 26, 0.8)',
+          padding: { x: 3, y: 1 },
+        })
+        .setOrigin(0.5, 1)
+        .setDepth(20)
+        .setAlpha(0);
+      const delay = Math.floor(i / 3) * 500;
+      this.tweens.add({ targets: text, alpha: 1, duration: 250, delay });
+      this.tweens.add({ targets: text, y: y - 16, duration: WHISPER_MS, delay, ease: 'Sine.easeOut' });
+      this.tweens.add({
+        targets: text,
+        alpha: 0,
+        duration: 600,
+        delay: delay + WHISPER_MS - 600,
+        onComplete: () => text.destroy(),
+      });
+    });
   }
 
   private coversPlayer(v: NpcView): boolean {

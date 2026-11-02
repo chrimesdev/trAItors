@@ -84,3 +84,20 @@ export function sweepFacing(
   const eased = Math.sign(s) * Math.min(1, Math.abs(s) * 1.4);
   return base + eased * sweep;
 }
+
+/**
+ * How strongly an NPC is glancing at the player at time `ms`: 0 while sweeping normally,
+ * rising to 1 for a `holdMs` look once every `periodMs`, with short ramps either side.
+ */
+export function glanceWeight(
+  ms: number,
+  periodMs: number,
+  holdMs: number,
+  phase: number,
+  rampMs = 180,
+): number {
+  const t = ((((ms / periodMs + phase) % 1) + 1) % 1) * periodMs;
+  if (t >= holdMs) return 0;
+  const edge = Math.min(t, holdMs - t);
+  return Math.max(0, Math.min(1, edge / rampMs));
+}
